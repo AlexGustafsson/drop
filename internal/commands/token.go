@@ -51,9 +51,9 @@ func tokenCommand(context *cli.Context) error {
 			rand.Read(passwordBytes)
 			password := hex.EncodeToString(passwordBytes)
 
-			fmt.Printf("http://localhost:8080?token=%s&secret=%s\n", token, password)
+			fmt.Printf("http://localhost:8080#token=%s&secret=%s\n", token, password)
 		} else {
-			fmt.Printf("http://localhost:8080?token=%s\n", token)
+			fmt.Printf("http://localhost:8080#token=%s\n", token)
 		}
 	} else {
 		fmt.Println(token)
