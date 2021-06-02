@@ -1,20 +1,37 @@
 package commands
 
 import (
-	"crypto/rand"
+	"fmt"
 
+	"github.com/AlexGustafsson/drop/internal/configuration"
 	"github.com/AlexGustafsson/drop/internal/server"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
 func serveCommand(context *cli.Context) error {
-	address := context.String("address")
-	port := uint16(context.Uint("port"))
+	configPath := context.String("config")
 
-	secret := make([]byte, 32)
-	rand.Read(secret)
+	config, err := configuration.Load(configPath)
+	if err != nil {
+		return err
+	}
+
+	errors := configuration.Validate(config)
+	if len(errors) != 0 {
+		for _, err := range errors {
+			log.Error(err)
+		}
+		return fmt.Errorf("Failed to validate the configuration")
+	}
+
+	secret, err := config.Secret()
+	if err != nil {
+		return err
+	}
+
 	server := server.NewServer(secret)
-	err := server.Start(address, port)
+	err = server.Start(config.Address, config.Port)
 	if err != nil {
 		return err
 	}

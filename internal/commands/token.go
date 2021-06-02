@@ -6,11 +6,14 @@ import (
 	"fmt"
 
 	"github.com/AlexGustafsson/drop/internal/authentication"
+	"github.com/AlexGustafsson/drop/internal/configuration"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/urfave/cli/v2"
 )
 
 func tokenCommand(context *cli.Context) error {
+	configPath := context.String("config")
 	name := context.String("name")
 	lifetime := context.Uint("lifetime")
 	maximumFileCount := context.Uint("maximumFileCount")
@@ -19,8 +22,23 @@ func tokenCommand(context *cli.Context) error {
 	share := context.Bool("share")
 	includeSecret := context.Bool("includeSecret")
 
-	secret := make([]byte, 32)
-	rand.Read(secret)
+	config, err := configuration.Load(configPath)
+	if err != nil {
+		return err
+	}
+
+	errors := configuration.Validate(config)
+	if len(errors) != 0 {
+		for _, err := range errors {
+			log.Error(err)
+		}
+		return fmt.Errorf("Failed to validate the configuration")
+	}
+
+	secret, err := config.Secret()
+	if err != nil {
+		return err
+	}
 
 	token, _, err := authentication.CreateToken(secret, name, int(lifetime), int(maximumFileCount), int(maximumFileSize), int(maximumSize))
 	if err != nil {

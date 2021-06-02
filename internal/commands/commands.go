@@ -16,16 +16,11 @@ var Commands = []*cli.Command{
 		Usage:  "Serve the application",
 		Action: serveCommand,
 		Flags: []cli.Flag{
-			&cli.UintFlag{
-				Name:    "port",
-				Aliases: []string{"p"},
-				Usage:   "Port to listen on",
-				Value:   8080,
-			},
 			&cli.StringFlag{
-				Name:  "address",
-				Usage: "Address to listen on",
-				Value: "",
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "Path to config file",
+				Value:   "config.yml",
 			},
 		},
 	},
@@ -34,6 +29,12 @@ var Commands = []*cli.Command{
 		Usage:  "Create a token",
 		Action: tokenCommand,
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "Path to config file",
+				Value:   "config.yml",
+			},
 			&cli.StringFlag{
 				Name:  "name",
 				Usage: "Name of the collection",
