@@ -4,6 +4,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "ESNext",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "types": [
+      "mocha"
+    ]
   }
 }
