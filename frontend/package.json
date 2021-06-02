@@ -1,0 +1,23 @@
+{
+  "name": "drop-frontend",
+  "version": "0.1.0",
+  "description": "Frontend for the drop file sharing service",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild --tsconfig=tsconfig.node.json build.ts | node --input-type=module",
+    "build:watch": "esbuild --tsconfig=tsconfig.node.json watch.ts | node --input-type=module",
+    "serve": "python3 -m http.server --directory ./dist 8080",
+    "dev": "concurrently 'npm:build:watch' 'npm:serve'"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/ejs": "^3.0.6",
+    "@types/node": "^15.6.2",
+    "concurrently": "^6.2.0",
+    "ejs": "^3.1.6",
+    "esbuild": "^0.12.5",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {}
+}
