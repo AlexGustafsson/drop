@@ -74,7 +74,7 @@ async function main() {
   buildCSS();
   buildHTML();
 
-  const watcher = chokidar.watch("./src", {persistent: true});
+  const watcher = chokidar.watch("./src", {ignored: "*.ts", depth: 2, persistent: true});
 
   watcher.on("add", onChange);
   watcher.on("change", onChange);
