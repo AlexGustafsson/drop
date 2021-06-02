@@ -1,0 +1,47 @@
+openapi: 3.0.0
+
+info:
+  title: Drop
+  description: A service for securely transferring files
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+
+paths:
+  /token:
+    post:
+      summary: Create a token.
+      requestBody:
+        required: true
+        content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 name:
+                   type: string
+                   description: Name of the collection when uploaded.
+                 lifetime:
+                   type: number
+                   description: The number of seconds the token should be valid.
+                 maximumFileCount:
+                   type: number
+                   description: The maximum number of files allowed to be uploaded. Use 0 to allow any count.
+                 maximumFileSize:
+                   type: number
+                   description: The maximum size of an uploaded file. Use 0 to allow any size.
+                 maximumSize:
+                   type: number
+                   description: The total maximum size of the uploaded files. use 0 to allow any size.
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string

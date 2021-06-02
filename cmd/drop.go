@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/AlexGustafsson/drop/commands"
-	"github.com/AlexGustafsson/drop/version"
+	"github.com/AlexGustafsson/drop/internal/commands"
+	"github.com/AlexGustafsson/drop/internal/version"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )

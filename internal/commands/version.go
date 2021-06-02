@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/AlexGustafsson/drop/version"
+	"github.com/AlexGustafsson/drop/internal/version"
 	"github.com/urfave/cli/v2"
 )
 
