@@ -1,9 +1,13 @@
 import {build} from "esbuild";
 import {renderFile} from "ejs";
-import {rm, writeFile, readdir} from "fs/promises";
+import postcss from "postcss";
+import atImport from "postcss-import";
+import cssnano from "cssnano";
+import {rm, readFile, writeFile, readdir} from "fs/promises";
+import {createHash} from "crypto";
 
 async function main() {
-  await rm("dist", { recursive: true });
+  await rm("dist", { force: true, recursive: true });
 
   const buildResult = await build({
     entryPoints: ["src/main.ts"],
@@ -17,18 +21,33 @@ async function main() {
 
   const files: [string] = await readdir("./dist/static");
   const mainScriptPath = files.find(x => x.match(/^main-.*\.js$/));
-  const mainStylePath = files.find(x => x.match(/^main-.*\.css$/));
+
+  const css = await readFile("./src/main.css");
+  const styleResult = await postcss()
+    .use(atImport())
+    .use(cssnano())
+    .process(css, {
+      from: "src/main.css",
+      to: "dist/static/main.css",
+      map: {
+        inline: false,
+      },
+    });
+
+  const styleHash = createHash("md5").update(styleResult.css).digest("base64url").substr(0, 8).toUpperCase();
+  await writeFile(`./dist/static/main-${styleHash}.css`, styleResult.css);
+  await writeFile(`./dist/static/main-${styleHash}.css.map`, styleResult.map.toString());
 
   const result = await renderFile(
     "./src/index.ejs",
     {
-      stylePath: `/static/${mainStylePath}`,
+      stylePath: `/static/main-${styleHash}.css`,
       scriptPath: `/static/${mainScriptPath}`,
     },
     {}
   );
 
-  writeFile("./dist/index.html", result);
+  await writeFile("./dist/index.html", result);
 }
 
 try {
