@@ -1,0 +1,21 @@
+#dropper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #FAFCFE;
+  border-radius: 15px;
+  padding: 50px 0px;
+  border: 2px dashed #93B2E9;
+  margin: 25px 0;
+  cursor: pointer;
+}
+
+#dropper svg {
+  width: 72px;
+  color: #BFBFBF;
+}
+
+#dropper p {
+  color: #BFBFBF;
+}
