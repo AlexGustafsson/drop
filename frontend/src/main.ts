@@ -1,3 +1,4 @@
+import { Endianness, getEndianness } from "./lib/endianness";
 import DroppedFile from "./ui/dropped-file";
 import Dropper from "./ui/dropper";
 
@@ -34,6 +35,11 @@ function parseClaims(token: string) {
 }
 
 async function main() {
+  if (getEndianness() !== Endianness.Little) {
+    alert("Currently, this application only supports little endian systems");
+    return;
+  }
+
   let { token, secret } = parseParameters();
   if (token === null) {
     // TODO: Show a in-page notification instead
