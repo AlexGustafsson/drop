@@ -19,7 +19,7 @@ async function main() {
     tsconfig: "tsconfig.browser.json",
   });
 
-  const files: [string] = await readdir("./dist/static");
+  const files: string[] = await readdir("./dist/static");
   const mainScriptPath = files.find(x => x.match(/^main-.*\.js$/));
 
   const css = await readFile("./src/main.css");
