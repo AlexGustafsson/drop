@@ -8,5 +8,8 @@
     "types": [
       "mocha"
     ]
-  }
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }
