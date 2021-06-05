@@ -2,7 +2,10 @@ import * as chai from "chai";
 import { hexToBuffer } from "../utils";
 const { expect } = chai;
 
-import { encrypt, encryptBlock, decrypt } from "./";
+import { encrypt, encryptBlock, decrypt, encryptFile, decryptFile } from "./";
+import { assert } from "chai";
+
+const generateBuffer = size => new Uint8Array(new Array(size).fill(0).map(x => Math.random() * 0xFF)).buffer;
 
 describe("ChaCha20", () => {
   it("survives roundtrip (arbitrary message)", () => {
@@ -18,33 +21,6 @@ describe("ChaCha20", () => {
     const plaintext = new Uint8Array(messageBuffer.byteLength).buffer;
     decrypt(key, nonce, ciphertext, plaintext);
     expect(plaintext).to.deep.equal(messageBuffer);
-  });
-
-
-  it("survives roundtrip", () => {
-    const key = new Uint32Array([
-      0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c,
-      0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c,
-    ]).buffer;
-
-    const blockCount = 1;
-
-    const nonce = new Uint32Array([
-      0x00000000, 0x4a000000, 0x00000000,
-    ]).buffer;
-
-    const message = new Uint8Array([
-      0xAB, 0xCD, 0xEF
-    ]).buffer;
-
-    console.log(message);
-
-    const ciphertext = new ArrayBuffer(3);
-    encrypt(key, nonce, message, ciphertext);
-    console.log(ciphertext);
-
-    decrypt(key, nonce, ciphertext, message);
-    console.log(message);
   });
 
   it("encrypts block correctly", () => {
@@ -76,4 +52,43 @@ describe("ChaCha20", () => {
     encryptBlock(key, nonce, block, 1, ciphertextView);
     expect(ciphertextView).to.deep.equal(expectedCiphertext);
   });
+
+  it("file encryption survives roundtrip", async () => {
+    if (typeof window === "undefined") {
+      assert.ok("only available in a browser");
+      return;
+    }
+
+    const size = 1024 * 1024; // 100 MiB
+
+    const plaintextBuffer = generateBuffer(size);
+    const plaintextFile = new File([plaintextBuffer], "filename", {type: "text/raw"});
+
+    const encryptedBuffer = new ArrayBuffer(size);
+    const encryptedView = new Uint8Array(encryptedBuffer);
+
+    const key = hexToBuffer("4dff1f50db3a861fce01c7004afd613317248f0895f723b9c11d4855a08621d6");
+    const nonce = hexToBuffer("402f0d2aaa5b439b983f7db5");
+
+    await encryptFile(key, nonce, plaintextFile, (error, chunk, chunkIndex) => {
+      expect(error).to.equal(null);
+      const view = new Uint8Array(chunk);
+      encryptedView.set(view, chunkIndex * 64);
+    });
+
+    // const encryptedFile = new File([encryptedBuffer], "filename", {type: "text/raw"});
+    // await decryptFile(key, nonce, encryptedFile, (error, chunk, chunkIndex) => {
+    //   expect(error).to.equal(null);
+    //   expect(chunk).to.deep.equal(plaintextBuffer.slice(chunkIndex * 64, chunkIndex * 64 + chunk.byteLength));
+    // });
+  }).timeout(5000);
+
+  // it("is not slow", () => {
+  //   const key = hexToBuffer("4dff1f50db3a861fce01c7004afd613317248f0895f723b9c11d4855a08621d6");
+  //   const nonce = hexToBuffer("402f0d2aaa5b439b983f7db5");
+
+  //   const size = 1024 * 1024 * 100; // 100 MiB
+
+
+  // });
 });

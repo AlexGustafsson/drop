@@ -1,4 +1,6 @@
 import { Endianness, getEndianness } from "./lib/endianness";
+import {generateKey, generateNonce} from "./lib/crypto/utils";
+import {encryptFile} from "./lib/crypto/chacha20";
 import DroppedFile from "./ui/dropped-file";
 import Dropper from "./ui/dropper";
 
@@ -74,6 +76,10 @@ async function main() {
       fileList.appendChild(droppedFile.element);
       if (dropper.files.length > 3)
         fileScroller.scrollTo(0, fileScroller.scrollHeight);
+
+      encryptFile(null, null, file, chunk => {
+        // todo
+      });
     }
   });
 }

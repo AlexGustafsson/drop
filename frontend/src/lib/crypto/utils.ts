@@ -21,7 +21,7 @@ export function generateNonce(): ArrayBuffer {
 // Likely only works for little endian systems
 export function bufferToHex(buffer: ArrayBuffer): string {
   const view = new Uint8Array(buffer);
-  return [...view].map(x => x.toString(16).padStart(2, "0")).join("");
+  return Array.from(view).map(x => x.toString(16).padStart(2, "0")).join("");
 };
 
 // Likely only works for little endian systems
