@@ -7,9 +7,11 @@
     "build": "esbuild --tsconfig=tsconfig.node.json build.ts | node --input-type=module",
     "build:watch": "esbuild --tsconfig=tsconfig.node.json watch.ts | node --input-type=module",
     "serve": "python3 -m http.server --directory ./dist 8080",
+    "serve:test": "python3 -m http.server --directory ./ 8080",
     "dev": "concurrently 'npm:build:watch' 'npm:serve'",
-    "test": "TS_NODE_PROJECT='tsconfig.node.json' mocha --verbose --extension ts --require ts-node/register src/**/*.test.ts",
-    "coverage": "nyc --reporter lcov --extension .ts npm run test"
+    "test:node": "TS_NODE_PROJECT='tsconfig.node.json' mocha --verbose --extension ts --require ts-node/register src/**/*.test.ts",
+    "build:test": "esbuild --tsconfig=tsconfig.node.json build-test.ts | node --input-type=module",
+    "dev:test": "concurrently 'npm:build:test' 'npm:serve:test'"
   },
   "author": "",
   "license": "ISC",
@@ -24,11 +26,16 @@
     "cssnano": "^5.0.5",
     "ejs": "^3.1.6",
     "esbuild": "^0.12.5",
+    "glob": "^7.1.7",
+    "karma-firefox-launcher": "^2.1.1",
     "mocha": "^8.4.0",
-    "nyc": "^15.1.0",
     "postcss": "^8.3.0",
     "postcss-import": "^14.0.2",
+    "source-map-support": "^0.5.19",
     "ts-node": "^10.0.0",
     "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "@types/glob": "^7.1.3"
   }
 }
