@@ -59,7 +59,7 @@ describe("ChaCha20", () => {
       return;
     }
 
-    const size = 1024 * 1024; // 100 MiB
+    const size = 10 * 1024 * 1024; // 100 MiB
 
     const plaintextBuffer = generateBuffer(size);
     const plaintextFile = new File([plaintextBuffer], "filename", {type: "text/raw"});
@@ -70,10 +70,10 @@ describe("ChaCha20", () => {
     const key = hexToBuffer("4dff1f50db3a861fce01c7004afd613317248f0895f723b9c11d4855a08621d6");
     const nonce = hexToBuffer("402f0d2aaa5b439b983f7db5");
 
-    await encryptFile(key, nonce, plaintextFile, (error, chunk, chunkIndex) => {
+    await encryptFile(key, nonce, plaintextFile, (error, chunk, offset) => {
       expect(error).to.equal(null);
       const view = new Uint8Array(chunk);
-      encryptedView.set(view, chunkIndex * 64);
+      encryptedView.set(view, offset);
     });
 
     // const encryptedFile = new File([encryptedBuffer], "filename", {type: "text/raw"});

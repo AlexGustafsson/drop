@@ -52,14 +52,14 @@ export function encrypt(key: ArrayBuffer, nonce: ArrayBuffer, message: ArrayBuff
   }
 }
 
-export type ChunkHandler = (error: DOMException, chunk: ArrayBuffer, chunkIndex: number) => void;
+export type ChunkHandler = (error: DOMException, chunk: ArrayBuffer, offset: number) => void;
 export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: File, onCiphertextChunk: ChunkHandler) {
   if (!(key instanceof ArrayBuffer))
     throw new Error("key must be ArrayBuffer");
   if (!(nonce instanceof ArrayBuffer))
     throw new Error("nonce must be ArrayBuffer");
 
-  const chunkSize = 64 * 1024; // 64 KiB
+  const chunkSize = 1024 * 1024; // 1 MiB
 
   return new Promise<void>((resolve, reject) => {
     const reader = new FileReader();
@@ -78,21 +78,19 @@ export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: Fi
         return;
       }
 
-      // TODO: Make this chunked instead of block.
-      // The encrypt block function can handle it,
-      // use the whole chunk to pass in to the block function,
-      // iterating over each part so that we don't allocate memory
-      // each time. Allocations are costly, iterations are not
+      // Encrypt each block of the chunk
       const chunk = event.target.result as ArrayBuffer;
+      const ciphertext = new ArrayBuffer(chunk.byteLength);
       const blocksInChunk = Math.ceil(chunk.byteLength / 64);
       for (let i = 0; i < blocksInChunk; i++) {
         const blockSize = Math.min(chunk.byteLength - i * 64, 64);
-        const block = new Uint8Array(chunk, i * 64, blockSize);
-        const ciphertext = new ArrayBuffer(blockSize);
-        encryptBlock(key, nonce, block, blockIndex, ciphertext);
-        onCiphertextChunk(null, ciphertext, blockIndex - 1);
+        const chunkView = new Uint8Array(chunk, i * 64, blockSize);
+        const ciphertextView = new Uint8Array(ciphertext, i * 64, blockSize);
+        encryptBlock(key, nonce, chunkView, blockIndex, ciphertextView);
         blockIndex++;
       }
+
+      onCiphertextChunk(null, ciphertext, offset);
 
       offset += chunk.byteLength;
       if (offset < file.size)
