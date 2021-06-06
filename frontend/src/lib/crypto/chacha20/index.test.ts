@@ -5,7 +5,7 @@ const { expect } = chai;
 import { encrypt, encryptBlock, decrypt, encryptFile, decryptFile } from "./";
 import { assert } from "chai";
 
-const generateBuffer = size => new Uint8Array(new Array(size).fill(0).map(x => Math.random() * 0xFF)).buffer;
+const generateBuffer = size => new Uint8Array(Array.from(Array(size).keys())).buffer;
 
 describe("ChaCha20", () => {
   it("survives roundtrip (arbitrary message)", () => {
@@ -59,7 +59,7 @@ describe("ChaCha20", () => {
       return;
     }
 
-    const size = 10 * 1024 * 1024; // 10 MiB
+    const size = 1 * 1024 * 1024; // 1 MiB
 
     const plaintextBuffer = generateBuffer(size);
     const plaintextFile = new File([plaintextBuffer], "filename", {type: "text/raw"});
@@ -70,19 +70,24 @@ describe("ChaCha20", () => {
     const key = hexToBuffer("4dff1f50db3a861fce01c7004afd613317248f0895f723b9c11d4855a08621d6");
     const nonce = hexToBuffer("402f0d2aaa5b439b983f7db5");
 
+    let before = performance.now();
     await encryptFile(key, nonce, plaintextFile, (error, chunk, offset) => {
       expect(error).to.equal(null);
       const view = new Uint8Array(chunk);
       encryptedView.set(view, offset);
     });
+    let after = performance.now();
+    console.log(`Encrypting ${size / (1024 * 1024)} MiB took ${after - before}ms`);
+
+    const encryptedFile = new File([encryptedBuffer], "filename", { type: "text/raw" });
+    before = performance.now();
+    await decryptFile(key, nonce, encryptedFile, (error, chunk, offset) => {
+      expect(error).to.equal(null);
+      const view = new Uint8Array(chunk);
+      const plaintextView = new Uint8Array(plaintextBuffer, offset, chunk.byteLength);
+      expect(view).to.deep.equal(plaintextView);
+    });
+    after = performance.now();
+    console.log(`Decrypting ${size / (1024 * 1024)} MiB took ${after - before}ms`);
   }).timeout(5000);
-
-  // it("is not slow", () => {
-  //   const key = hexToBuffer("4dff1f50db3a861fce01c7004afd613317248f0895f723b9c11d4855a08621d6");
-  //   const nonce = hexToBuffer("402f0d2aaa5b439b983f7db5");
-
-  //   const size = 1024 * 1024 * 100; // 100 MiB
-
-
-  // });
 });
