@@ -3,8 +3,10 @@ package server
 import (
 	"fmt"
 
+	"github.com/AlexGustafsson/drop/internal/server/middleware/authenticator"
+	"github.com/AlexGustafsson/drop/internal/server/middleware/logger"
+	"github.com/gofiber/fiber/v2"
 	log "github.com/sirupsen/logrus"
-	"github.com/valyala/fasthttp"
 )
 
 type Server struct {
@@ -18,17 +20,16 @@ func NewServer(secret []byte) *Server {
 }
 
 func (server *Server) Start(address string, port uint16) error {
+	app := fiber.New(fiber.Config{
+		DisableStartupMessage: true,
+	})
+	app.Use(authenticator.New(server.secret))
+	app.Use(logger.New())
+
+	app.Post("/api/v1/archive", server.handleArchiveCreation)
+	app.Post("/api/v1/archive/:archiveId/file", server.handleFileCreation)
+	app.Post("/api/v1/archive/:archiveId/file/:fileId", server.handleFileUpload)
+
 	log.Infof("Starting server on %s:%d", address, port)
-	return fasthttp.ListenAndServe(fmt.Sprintf("%s:%d", address, port), server.handleRequest)
-}
-
-func (server *Server) handleRequest(ctx *fasthttp.RequestCtx) {
-	ctx.Response.Header.Set(ContentTypeHeader, ApplicationTypeJSON)
-
-	switch string(ctx.Path()) {
-	case "/api/v1/token":
-		server.handleTokenEndpoint(ctx)
-	default:
-		ctx.Error(NotFoundError, fasthttp.StatusNotFound)
-	}
+	return app.Listen(fmt.Sprintf("%s:%d", address, port))
 }
