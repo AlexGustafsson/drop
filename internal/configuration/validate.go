@@ -5,11 +5,11 @@ import "fmt"
 func Validate(config *Configuration) []error {
 	errors := make([]error, 0)
 
-	if config.secret.value != "" && config.secret.file != "" {
+	if config.Secret.Value != "" && config.Secret.File != "" {
 		errors = append(errors, fmt.Errorf("The secret value and secret file are mutually exclusive"))
 	}
 
-	secret, err := config.Secret()
+	secret, err := config.ConfiguredSecret()
 	if err != nil {
 		errors = append(errors, fmt.Errorf("Unable to read secret: %v", err))
 	} else {

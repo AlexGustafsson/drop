@@ -4,41 +4,47 @@ import (
 	"bytes"
 	"crypto/rand"
 	"io/ioutil"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Configuration struct {
-	Address string `koanf:"address"`
-	Port    uint16 `koanf:"port"`
-	secret  struct {
-		value string `koanf:"value"`
-		file  string `koanf:"file"`
+	Address   string `koanf:"address"`
+	Port      uint16 `koanf:"port"`
+	LogAsJSON bool   `koanf:"logAsJSON"`
+	Secret    struct {
+		Value string `koanf:"value"`
+		File  string `koanf:"file"`
 		cache []byte
 	} `koanf:"secret"`
 }
 
 // Secret returns the configured secret
-func (config *Configuration) Secret() ([]byte, error) {
-	if config.secret.cache != nil {
-		return config.secret.cache, nil
+func (config *Configuration) ConfiguredSecret() ([]byte, error) {
+	if config.Secret.cache != nil {
+		return config.Secret.cache, nil
 	}
 
-	if config.secret.value != "" {
-		config.secret.cache = []byte(config.secret.value)
-		return config.secret.cache, nil
+	if config.Secret.Value != "" {
+		config.Secret.cache = []byte(config.Secret.Value)
+		log.Debug("Configured secret by value")
+		return config.Secret.cache, nil
 	}
 
-	if config.secret.file != "" {
-		buffer, err := ioutil.ReadFile(config.secret.file)
+	if config.Secret.File != "" {
+		buffer, err := ioutil.ReadFile(config.Secret.File)
 		if err != nil {
 			return nil, err
 		}
 
-		config.secret.cache = bytes.TrimSpace(buffer)
-		return config.secret.cache, nil
+		config.Secret.cache = bytes.TrimSpace(buffer)
+		log.Debug("Read secret from file")
+		return config.Secret.cache, nil
 	}
 
 	buffer := make([]byte, 32)
 	rand.Read(buffer)
-	config.secret.cache = buffer
-	return config.secret.cache, nil
+	config.Secret.cache = buffer
+	log.Debug("Generated secret")
+	return config.Secret.cache, nil
 }
