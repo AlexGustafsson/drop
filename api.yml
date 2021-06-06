@@ -10,9 +10,9 @@ servers:
     description: Development server
 
 paths:
-  /token:
+  /archive:
     post:
-      summary: Create a token.
+      summary: Create an archive.
       requestBody:
         required: true
         content:
@@ -22,7 +22,7 @@ paths:
                properties:
                  name:
                    type: string
-                   description: Name of the collection when uploaded.
+                   description: Name of the archive.
                  lifetime:
                    type: number
                    description: The number of seconds the token should be valid.
@@ -45,3 +45,83 @@ paths:
                 properties:
                   token:
                     type: string
+                    description: Token with upload access to the archive.
+                  id:
+                    type: string
+                    description: The id of the created archive.
+
+  /archive/{archiveId}/file:
+    post:
+      summary: Create a file.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: archiveId
+          schema:
+            type: string
+          required: true
+          description: The id of the target archive.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the file.
+                lastModified:
+                  type: number
+                  description: The UTC timestamp when the file was last modified.
+                size:
+                  type: number
+                  description: Size in bytes.
+                type:
+                  type: string
+                  description: The MIME type of the file.
+        responses:
+          "201":
+            description: Created
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: "The created file's id, used for the upload"
+          "403":
+            description: Forbidden
+  /archive/{archiveId}/file/{fileId}:
+    post:
+      summary: Upload bytes of a file.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: archiveId
+          schema:
+            type: string
+          required: true
+          description: The id of the target archive.
+        - in: path
+          name: fileId
+          schema:
+            type: string
+          required: true
+          description: The id of the target file.
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
