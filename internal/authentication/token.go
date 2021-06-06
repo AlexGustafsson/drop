@@ -37,9 +37,27 @@ func CreateToken(secret []byte, name string, lifetime int, maximumFileCount int,
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString(secret)
 	if err != nil {
-		log.Error("Failed to sign token", err.Error())
+		log.Error("Failed to sign token: ", err.Error())
 		return "", "", fmt.Errorf(TokenCreationFailedError)
 	}
 
 	return signedToken, id.String(), nil
+}
+
+func ValidateToken(secret []byte, bearerToken string) (*TokenClaims, error) {
+	claims := &TokenClaims{}
+	token, err := jwt.ParseWithClaims(bearerToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return secret, nil
+	})
+	if err != nil {
+		log.Error("Failed to parse and validate token: ", err)
+		return nil, fmt.Errorf(TokenValidationError)
+	}
+
+	if token.Method.Alg() != "HS256" {
+		log.Errorf("Signing method must be HS256, was %s", token.Method.Alg())
+		return nil, fmt.Errorf(TokenValidationError)
+	}
+
+	return claims, nil
 }

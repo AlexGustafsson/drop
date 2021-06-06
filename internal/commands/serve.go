@@ -25,7 +25,11 @@ func serveCommand(context *cli.Context) error {
 		return fmt.Errorf("Failed to validate the configuration")
 	}
 
-	secret, err := config.Secret()
+	if config.LogAsJSON {
+		log.SetFormatter(&log.JSONFormatter{})
+	}
+
+	secret, err := config.ConfiguredSecret()
 	if err != nil {
 		return err
 	}
