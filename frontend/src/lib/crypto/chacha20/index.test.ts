@@ -59,7 +59,7 @@ describe("ChaCha20", () => {
       return;
     }
 
-    const size = 10 * 1024 * 1024; // 100 MiB
+    const size = 10 * 1024 * 1024; // 10 MiB
 
     const plaintextBuffer = generateBuffer(size);
     const plaintextFile = new File([plaintextBuffer], "filename", {type: "text/raw"});
@@ -75,12 +75,6 @@ describe("ChaCha20", () => {
       const view = new Uint8Array(chunk);
       encryptedView.set(view, offset);
     });
-
-    // const encryptedFile = new File([encryptedBuffer], "filename", {type: "text/raw"});
-    // await decryptFile(key, nonce, encryptedFile, (error, chunk, chunkIndex) => {
-    //   expect(error).to.equal(null);
-    //   expect(chunk).to.deep.equal(plaintextBuffer.slice(chunkIndex * 64, chunkIndex * 64 + chunk.byteLength));
-    // });
   }).timeout(5000);
 
   // it("is not slow", () => {
