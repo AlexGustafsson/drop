@@ -25,15 +25,9 @@ export default class Dropper {
     this.element.addEventListener("click", this.handleClick.bind(this));
   }
 
-  handleFileDrop(event: DragEvent) {
-    // Prevent files from being opened
-    event.preventDefault();
-    event.cancelBubble = true;
-
-    const droppedFiles = Array.from(event.dataTransfer.files);
-
+  private addFiles(files: File[]) {
     if (this.options.maximumFileCount > 0) {
-      if (this.files.length + droppedFiles.length > this.options.maximumFileCount) {
+      if (this.files.length + files.length > this.options.maximumFileCount) {
         alert(`Too many files, may at most upload ${this.options.maximumFileCount}`);
         return;
       }
@@ -41,7 +35,7 @@ export default class Dropper {
 
     if (this.options.maximumSize > 0) {
       const currentSize = this.files.reduce((sum, file) => sum + file.size, 0);
-      const droppedSize = droppedFiles.reduce((sum, file) => sum + file.size, 0);
+      const droppedSize = files.reduce((sum, file) => sum + file.size, 0);
       if (currentSize + droppedSize > this.options.maximumSize) {
         alert(`Files are too large, may at most be ${this.options.maximumSize}B`);
         return;
@@ -49,16 +43,25 @@ export default class Dropper {
     }
 
     if (this.options.maximumFileSize > 0) {
-      const largeFiles = droppedFiles.filter(file => file.size > this.options.maximumFileSize);
+      const largeFiles = files.filter(file => file.size > this.options.maximumFileSize);
       if (largeFiles.length > 0) {
         alert(`One or more files are too large: ${largeFiles.join(", ")}`);
         return;
       }
     }
 
-    this.files.push(...droppedFiles);
+    this.files.push(...files);
     for (const handler of this.listeners["drop"] || [])
-      handler(droppedFiles);
+      handler(files);
+  }
+
+  handleFileDrop(event: DragEvent) {
+    // Prevent files from being opened
+    event.preventDefault();
+    event.cancelBubble = true;
+
+    const droppedFiles = Array.from(event.dataTransfer.files);
+    this.addFiles(droppedFiles);
   }
 
   handleFileDragOver(event: DragEvent) {
@@ -71,9 +74,7 @@ export default class Dropper {
     input.click();
     input.addEventListener("change", () => {
       const droppedFiles = Array.from(input.files);
-      this.files.push(...droppedFiles);
-      for (const handler of this.listeners["drop"] || [])
-        handler(droppedFiles);
+      this.addFiles(droppedFiles);
     });
   }
 

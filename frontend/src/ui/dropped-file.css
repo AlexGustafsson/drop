@@ -41,7 +41,7 @@
 }
 
 .dropped-file .progress {
-  display: relative;
+  position: relative;
   grid-column: 2 / 4;
   grid-row: 2;
   width: 100%;
@@ -55,11 +55,10 @@
   animation-delay: 0.8s;
 }
 
-.dropped-file .progress::after {
-  display: absolute;
+.dropped-file .progress > div {
+  position: absolute;
   top: 0;
   left: 0;
-  content: '';
   display: block;
   background-color: #498CF9;
   border-radius: 5px;

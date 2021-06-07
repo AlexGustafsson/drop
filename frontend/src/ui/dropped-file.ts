@@ -16,12 +16,13 @@ function createIcon(icon: string): SVGElement {
 }
 
 export default class DroppedFile {
-  private titleElement: Element;
-  private iconElement: Element;
-  private statusElement: Element;
-  private progressElement: Element;
+  private titleElement: HTMLElement;
+  private iconElement: SVGElement;
+  private statusElement: HTMLElement;
+  private progressElement: HTMLElement;
+  private progressBarElement: HTMLElement;
 
-  public element: Element;
+  public element: HTMLElement;
   public file: File;
 
   constructor(file: File) {
@@ -47,5 +48,13 @@ export default class DroppedFile {
     this.progressElement = document.createElement("div");
     this.progressElement.classList.add("progress");
     this.element.appendChild(this.progressElement);
+
+    this.progressBarElement = document.createElement("div");
+    this.progressElement.appendChild(this.progressBarElement);
+  }
+
+  setProgress(value: number) {
+    this.progressBarElement.style.width = `${Math.round(value * 100)}%`;
+    this.statusElement.innerText = `${Math.round(value * 100)}%`;
   }
 }

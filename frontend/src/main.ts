@@ -1,8 +1,9 @@
 import { Endianness, getEndianness } from "./lib/endianness";
-import {generateKey, generateNonce} from "./lib/crypto/utils";
+import {generateKey, generateNonce, hexToBuffer} from "./lib/crypto/utils";
 import {encryptFile} from "./lib/crypto/chacha20";
 import DroppedFile from "./ui/dropped-file";
 import Dropper from "./ui/dropper";
+import FileUploader from "./lib/FileUploader";
 
 function disableBodyDragAndDrop() {
   document.body.addEventListener("dragover", (event: DragEvent) => {
@@ -30,6 +31,7 @@ function parseClaims(token: string) {
     maximumFileCount: claims["mfc"] || 0,
     maximumFileSize: claims["mfs"] || 0,
     maximumSize: claims["ms"] || 0,
+    archiveId: claims["arc"],
     expiresAt: new Date(claims["exp"] * 1000),
     id: claims["jti"],
     issuer: claims["iss"],
@@ -63,6 +65,23 @@ async function main() {
 
   disableBodyDragAndDrop();
 
+  const fileUploader = new FileUploader(token, claims.archiveId, hexToBuffer(secret), new ArrayBuffer(10));
+
+  // TODO: fix this ugly hack
+  const filesList: File[] = [];
+  const droppedFileList: DroppedFile[] = [];
+
+  fileUploader.addEventListener("done", file => {
+    console.log("Done", file);
+    const index = filesList.indexOf(file);
+    const droppedFile = droppedFileList[index];
+    droppedFile.setProgress(1);
+  });
+
+  fileUploader.addEventListener("error", (file, error: Error) => {
+    console.error("Error", file, error);
+  });
+
   dropper.addEventListener("drop", (files: File[]) => {
     if (secret === null)
       secret = prompt("Secret");
@@ -72,14 +91,13 @@ async function main() {
     main.style.height = `${400 + 70 * Math.min(dropper.files.length, 3.5)}px`;
     for (const file of files) {
       const droppedFile = new DroppedFile(file);
-      console.log(droppedFile);
       fileList.appendChild(droppedFile.element);
       if (dropper.files.length > 3)
         fileScroller.scrollTo(0, fileScroller.scrollHeight);
 
-      encryptFile(null, null, file, chunk => {
-        // todo
-      });
+      droppedFileList.push(droppedFile);
+      filesList.push(file);
+      fileUploader.upload(file);
     }
   });
 }
