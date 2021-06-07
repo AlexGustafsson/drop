@@ -49,7 +49,7 @@ export default class State {
    */
   withKey(key: ArrayBuffer): State {
     if (key.byteLength != 32)
-      throw new Error("Key must be 32 bytes");
+      throw new Error(`Key must be 32 bytes, was ${key.byteLength}`);
 
     const view = new Uint32Array(key);
     this.view32.set(view, 4);
@@ -71,7 +71,7 @@ export default class State {
    */
   withNonce(nonce: ArrayBuffer): State {
     if (nonce.byteLength != 12)
-      throw new Error("Nonce must be 12 bytes");
+      throw new Error(`Nonce must be 12 bytes, was ${nonce.byteLength}`);
 
     const view = new Uint32Array(nonce);
     this.view32.set(view, 13);

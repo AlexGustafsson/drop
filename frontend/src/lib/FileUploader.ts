@@ -1,4 +1,5 @@
 import { encryptFile } from "./crypto/chacha20";
+import { hexToBuffer } from "./crypto/utils";
 
 export type FileUploadEventHandler = (file: File, parameter?: any) => void;
 export default class FileUploader {
@@ -43,16 +44,35 @@ export default class FileUploader {
 
   async upload(file: File) {
     const id = await this.createFile(file);
+    const {key, nonce} = this;
+    const fileStream = new ReadableStream({
+      start(controller) {
+        encryptFile(key, nonce, file, (error, chunk, offset) => {
+          if (error != null) {
+            // TODO: handle
+            return;
+          }
+
+          controller.enqueue(chunk);
+        });
+      }
+    });
+
+    const {readable, writable} = new TransformStream();
+
+    fileStream.pipeTo(writable);
+
     const request = new Request(`/api/v1/archive/${this.archiveId}/file/${id}`, {
       method: "POST",
       headers: new Headers({
         "Authorization": `Bearer ${this.token}`,
         "Content-Type": "application/json",
       }),
-      body: await file.arrayBuffer(),
+      mode: "same-origin",
+      body: readable,
     });
 
-    const response = await fetch(request);
+    await fetch(request, { mode: "same-origin", allowHTTP1ForStreamingUpload: true } as RequestInit);
 
     // TODO:
     // https://web.dev/fetch-upload-streaming/

@@ -30,5 +30,5 @@ export function hexToBuffer(hex: string): ArrayBuffer {
   const view = new Uint8Array(buffer);
   for (let i = 0; i < hex.length / 2; i++)
     view[i] = Number.parseInt(hex.substr(i * 2, 2), 16);
-  return view.buffer
+  return buffer;
 }

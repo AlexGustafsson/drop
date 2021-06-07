@@ -65,7 +65,7 @@ async function main() {
 
   disableBodyDragAndDrop();
 
-  const fileUploader = new FileUploader(token, claims.archiveId, hexToBuffer(secret), new ArrayBuffer(10));
+  const fileUploader = new FileUploader(token, claims.archiveId, hexToBuffer(secret), new ArrayBuffer(12));
 
   // TODO: fix this ugly hack
   const filesList: File[] = [];
