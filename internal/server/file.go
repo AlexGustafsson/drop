@@ -157,6 +157,13 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 		return nil
 	}
 
+	fileExists, err = server.dataStore.Exists(archiveId, fileId)
+	if !fileExists {
+		log.Errorf("File is tracked in state but does not exist in the store: %s/%s", archiveId, fileId)
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return nil
+	}
+
 	reader := ctx.Context().RequestBodyStream()
 	buffer := make([]byte, 0, server.ChunkSize)
 	for {
