@@ -21,14 +21,8 @@ func (store *LocalDataStore) Prepare() error {
 
 func (store *LocalDataStore) Write(archiveId string, fileId string, content []byte) error {
 	// TODO: properly resolve path
-	directoryPath := fmt.Sprintf("%s/%s", store.directory, archiveId)
-	err := os.MkdirAll(directoryPath, 0771)
-	if err != nil {
-		return err
-	}
-
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0660)
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0660)
 	if err != nil {
 		return err
 	}
@@ -55,4 +49,21 @@ func (store *LocalDataStore) Exists(archiveId string, fileId string) (bool, erro
 	}
 
 	return true, nil
+}
+
+func (store *LocalDataStore) Touch(archiveId string, fileId string) error {
+	// TODO: properly resolve path
+	directoryPath := fmt.Sprintf("%s/%s", store.directory, archiveId)
+	err := os.MkdirAll(directoryPath, 0771)
+	if err != nil {
+		return err
+	}
+
+	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
+	file, err := os.OpenFile(filePath, os.O_CREATE, 0660)
+	if err != nil {
+		return err
+	}
+	file.Close()
+	return err
 }
