@@ -22,6 +22,7 @@ func Load(filePath string) (*Configuration, error) {
 		"port":             "8080",
 		"store.adapter":    "memory",
 		"server.chunkSize": "1048576", // 1MiB
+		"frontend":         "./frontend/dist",
 	}, ".")
 	err := k.Load(defaults, nil)
 	if err != nil {

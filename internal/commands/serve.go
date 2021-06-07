@@ -62,7 +62,7 @@ func serveCommand(context *cli.Context) error {
 		dataStore = localStore
 	}
 
-	server := server.NewServer(stateStore, dataStore)
+	server := server.NewServer(stateStore, dataStore, config.Frontend)
 	server.ChunkSize = config.Server.ChunkSize
 
 	err = server.Start(config.Address, config.Port)

@@ -28,6 +28,7 @@ type Configuration struct {
 		Adapter   string `koanf:"adapter"`
 		Directory string `koanf:"directory"`
 	} `koanf:"data"`
+	Frontend string `koanf:"frontend"`
 }
 
 // ConfiguredSecret returns the configured secret
