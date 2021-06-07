@@ -23,9 +23,6 @@ paths:
                  name:
                    type: string
                    description: Name of the archive.
-                 lifetime:
-                   type: number
-                   description: The number of seconds the token should be valid.
                  maximumFileCount:
                    type: number
                    description: The maximum number of files allowed to be uploaded. Use 0 to allow any count.
@@ -43,12 +40,41 @@ paths:
               schema:
                 type: object
                 properties:
-                  token:
-                    type: string
-                    description: Token with upload access to the archive.
                   id:
                     type: string
                     description: The id of the created archive.
+
+  /archive/{archiveId}/token:
+    post:
+      summary: Create a token for the archive.
+      parameters:
+        - in: path
+          name: archiveId
+          schema:
+            type: string
+          required: true
+          description: The id of the target archive.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lifetime:
+                  type: number
+                  description: The number of seconds the token should be valid.
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Token with upload access to the archive.
 
   /archive/{archiveId}/file:
     post:
@@ -78,7 +104,7 @@ paths:
                 size:
                   type: number
                   description: Size in bytes.
-                type:
+                mime:
                   type: string
                   description: The MIME type of the file.
         responses:
