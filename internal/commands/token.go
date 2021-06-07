@@ -40,7 +40,7 @@ func tokenCommand(context *cli.Context) error {
 		return err
 	}
 
-	token, _, err := authentication.CreateToken(secret, name, int(lifetime), int(maximumFileCount), int(maximumFileSize), int(maximumSize))
+	token, _, err := authentication.CreateToken(secret, "temp", name, int(lifetime), int(maximumFileCount), int(maximumFileSize), int(maximumSize))
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/AlexGustafsson/drop/internal/configuration"
 	"github.com/AlexGustafsson/drop/internal/server"
+	"github.com/AlexGustafsson/drop/internal/store/memory"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -34,7 +35,10 @@ func serveCommand(context *cli.Context) error {
 		return err
 	}
 
-	server := server.NewServer(secret)
+	store := memory.New(secret)
+	server := server.NewServer(store)
+	server.ChunkSize = config.Server.ChunkSize
+
 	err = server.Start(config.Address, config.Port)
 	if err != nil {
 		return err

@@ -10,13 +10,14 @@ import (
 )
 
 type TokenClaims struct {
-	MaximumFileCount int `json:"mfc"`
-	MaximumFileSize  int `json:"mfs"`
-	MaximumSize      int `json:"ms"`
+	ArchiveId        string `json:"arc"`
+	MaximumFileCount int    `json:"mfc"`
+	MaximumFileSize  int    `json:"mfs"`
+	MaximumSize      int    `json:"ms"`
 	jwt.StandardClaims
 }
 
-func CreateToken(secret []byte, name string, lifetime int, maximumFileCount int, maximumFileSize int, maximumSize int) (string, string, error) {
+func CreateToken(secret []byte, archiveId string, name string, lifetime int, maximumFileCount int, maximumFileSize int, maximumSize int) (string, string, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
 		log.Error("Failed to generate token id", err.Error())
@@ -24,6 +25,7 @@ func CreateToken(secret []byte, name string, lifetime int, maximumFileCount int,
 	}
 
 	claims := TokenClaims{
+		archiveId,
 		maximumFileCount,
 		maximumFileSize,
 		maximumSize,

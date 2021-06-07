@@ -17,9 +17,15 @@ type Configuration struct {
 		File  string `koanf:"file"`
 		cache []byte
 	} `koanf:"secret"`
+	Store struct {
+		Adapter string `koanf:"adapter"`
+	} `koanf:"store"`
+	Server struct {
+		ChunkSize int `koanf:"chunkSize"`
+	} `koanf:"server"`
 }
 
-// Secret returns the configured secret
+// ConfiguredSecret returns the configured secret
 func (config *Configuration) ConfiguredSecret() ([]byte, error) {
 	if config.Secret.cache != nil {
 		return config.Secret.cache, nil

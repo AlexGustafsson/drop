@@ -18,8 +18,10 @@ func Load(filePath string) (*Configuration, error) {
 	k := koanf.New(".")
 
 	defaults := confmap.Provider(map[string]interface{}{
-		"address": "",
-		"port":    "8080",
+		"address":          "",
+		"port":             "8080",
+		"store.adapter":    "memory",
+		"server.chunkSize": "1048576", // 1MiB
 	}, ".")
 	err := k.Load(defaults, nil)
 	if err != nil {

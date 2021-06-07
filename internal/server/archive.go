@@ -1,16 +1,13 @@
 package server
 
 import (
-	"github.com/AlexGustafsson/drop/internal/authentication"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
 // CreateArchiveRequest is the request for the create archive API.
 type CreateArchiveRequest struct {
 	Name             string `json:"name"`
-	Lifetime         int    `json:"lifetime"`
 	MaximumFileCount int    `json:"maximumFileCount"`
 	MaximumFileSize  int    `json:"maximumFileSize"`
 	MaximumSize      int    `json:"maximumSize"`
@@ -18,8 +15,17 @@ type CreateArchiveRequest struct {
 
 // CreateArchiveResponse is the response for the create archive API.
 type CreateArchiveResponse struct {
+	Id string `json:"id"`
+}
+
+// CreateArchiveTokenRequest is the request for the create archive token API.
+type CreateArchiveTokenRequest struct {
+	Lifetime int `json:"lifetime"`
+}
+
+// CreateArchiveTokenResponse is the response for the create archive token API.
+type CreateArchiveTokenResponse struct {
 	Token string `json:"token"`
-	Id    string `json:"id"`
 }
 
 func (server *Server) handleArchiveCreation(ctx *fiber.Ctx) error {
@@ -30,22 +36,20 @@ func (server *Server) handleArchiveCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	token, tokenId, err := authentication.CreateToken(server.secret, request.Name, request.Lifetime, request.MaximumFileCount, request.MaximumFileSize, request.MaximumSize)
+	archive, err := server.store.CreateArchive(
+		request.Name,
+		request.MaximumFileCount,
+		request.MaximumFileSize,
+		request.MaximumSize,
+	)
 	if err != nil {
-		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
-	}
-
-	archiveId, err := uuid.NewRandom()
-	if err != nil {
-		log.Error("Failed to generate archive id", err.Error())
+		log.Error("Failed to create archive", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
 		return nil
 	}
 
 	var response CreateArchiveResponse
-	response.Token = token
-	response.Id = archiveId.String()
+	response.Id = archive.Id()
 
 	err = ctx.JSON(response)
 	if err != nil {
@@ -54,6 +58,47 @@ func (server *Server) handleArchiveCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	log.Debugf("Responded with token id %s", tokenId)
+	ctx.Status(fiber.StatusCreated)
+	return nil
+}
+
+func (server *Server) handleArchiveTokenCreation(ctx *fiber.Ctx) error {
+	var request CreateArchiveTokenRequest
+	if err := ctx.BodyParser(&request); err != nil {
+		log.Error("Failed to parse request body", err.Error())
+		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
+		return nil
+	}
+
+	archiveId := ctx.Params("archiveId")
+	_, archiveExists, err := server.store.Archive(archiveId)
+	if err != nil {
+		log.Error("Unable to get archive", err.Error())
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return nil
+	}
+	if !archiveExists {
+		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
+		return nil
+	}
+
+	token, err := server.store.CreateToken(archiveId, request.Lifetime)
+	if err != nil {
+		log.Error("Failed to create token", err.Error())
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return nil
+	}
+
+	var response CreateArchiveTokenResponse
+	response.Token = token
+
+	err = ctx.JSON(response)
+	if err != nil {
+		log.Error("Failed to encode create archive token response", err.Error())
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return nil
+	}
+
+	ctx.Status(fiber.StatusCreated)
 	return nil
 }

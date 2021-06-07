@@ -3,8 +3,8 @@ package server
 import (
 	"io"
 
+	"github.com/AlexGustafsson/drop/internal/authentication"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,7 +13,7 @@ type CreateFileRequest struct {
 	Name         string `json:"name"`
 	LastModified int    `json:"lastModified"`
 	Size         int    `json:"size"`
-	Type         string `json:"type"`
+	Mime         string `json:"mime"`
 }
 
 // CreateFileResponse is the response for the create file API.
@@ -27,6 +27,17 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
 		return nil
 	}
+	claims := claimsLocal.(*authentication.TokenClaims)
+
+	archiveId := ctx.Params("archiveId")
+	if claims.ArchiveId != archiveId {
+		log.WithFields(log.Fields{
+			"archiveId": archiveId,
+			"tokenId":   claims.ArchiveId,
+		}).Error("Attempt at targeting a non-permitted archive")
+		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
+		return nil
+	}
 
 	var request CreateFileRequest
 	if err := ctx.BodyParser(&request); err != nil {
@@ -35,9 +46,20 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	fileId, err := uuid.NewRandom()
+	_, archiveExists, err := server.store.Archive(archiveId)
 	if err != nil {
-		log.Error("Failed to generate file id", err.Error())
+		log.Error("Unable to get archive", err.Error())
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return nil
+	}
+
+	if !archiveExists {
+		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
+		return nil
+	}
+
+	file, err := server.store.CreateFile(archiveId, request.Name, request.LastModified, request.Size, request.Mime)
+	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
 		return nil
 	}
@@ -45,12 +67,19 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 	// TODO: Retain context of created files during the session
 	// TODO: Validate that it does not surpass valid size
 
-	log.Infof("Creating file '%s' (%s) of %d bytes", request.Name, request.Type, request.Size)
+	log.Infof("Creating file '%s' (%s) of %d bytes", request.Name, request.Mime, request.Size)
 	response := CreateFileResponse{
-		Id: fileId.String(),
+		Id: file.Id(),
 	}
 
-	ctx.Status(fiber.StatusCreated).JSON(response)
+	err = ctx.JSON(response)
+	if err != nil {
+		log.Error("Failed to encode create file response", err.Error())
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return nil
+	}
+
+	ctx.Status(fiber.StatusCreated)
 	return nil
 }
 
@@ -63,7 +92,7 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 
 	// TODO: Find archive, validate etc.
 	reader := ctx.Context().RequestBodyStream()
-	buffer := make([]byte, 0, 1024*1024)
+	buffer := make([]byte, 0, server.ChunkSize)
 	for {
 		length, err := io.ReadFull(reader, buffer[:cap(buffer)])
 		// TODO: Doesn't this duplicate memory?

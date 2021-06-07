@@ -18,5 +18,17 @@ func Validate(config *Configuration) []error {
 		}
 	}
 
+	if config.Store.Adapter != "memory" {
+		errors = append(errors, fmt.Errorf("Unsupported store adapter '%s'", config.Store.Adapter))
+	}
+
+	if config.Server.ChunkSize <= 1024 {
+		errors = append(errors, fmt.Errorf("The server chunk size may not be less than 1024"))
+	}
+
+	if config.Server.ChunkSize%64 != 0 {
+		errors = append(errors, fmt.Errorf("The server chunk size must be evenly divisible by 64"))
+	}
+
 	return errors
 }
