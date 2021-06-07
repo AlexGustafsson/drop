@@ -18,8 +18,16 @@ func Validate(config *Configuration) []error {
 		}
 	}
 
-	if config.Store.Adapter != "memory" {
+	if config.Store.Adapter != "memory" && config.Store.Adapter != "sqlite" {
 		errors = append(errors, fmt.Errorf("Unsupported store adapter '%s'", config.Store.Adapter))
+	}
+
+	if config.Store.Adapter != "sqlite" && config.Store.ConnectionString != "" {
+		errors = append(errors, fmt.Errorf("Specifying a connection string has no use with adapter '%s'", config.Store.Adapter))
+	}
+
+	if config.Store.Adapter == "sqlite" && config.Store.ConnectionString == "" {
+		errors = append(errors, fmt.Errorf("A connection string must be specified when using adapter '%s'", config.Store.Adapter))
 	}
 
 	if config.Server.ChunkSize <= 1024 {

@@ -18,7 +18,8 @@ type Configuration struct {
 		cache []byte
 	} `koanf:"secret"`
 	Store struct {
-		Adapter string `koanf:"adapter"`
+		Adapter          string `koanf:"adapter"`
+		ConnectionString string `koanf:"connectionString"`
 	} `koanf:"store"`
 	Server struct {
 		ChunkSize int `koanf:"chunkSize"`

@@ -5,7 +5,9 @@ import (
 
 	"github.com/AlexGustafsson/drop/internal/configuration"
 	"github.com/AlexGustafsson/drop/internal/server"
+	"github.com/AlexGustafsson/drop/internal/store"
 	"github.com/AlexGustafsson/drop/internal/store/memory"
+	"github.com/AlexGustafsson/drop/internal/store/sqlite"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -35,7 +37,18 @@ func serveCommand(context *cli.Context) error {
 		return err
 	}
 
-	store := memory.New(secret)
+	var store store.Store
+	if config.Store.Adapter == "memory" {
+		store = memory.New(secret)
+	} else if config.Store.Adapter == "sqlite" {
+		sqliteStore := sqlite.New(secret)
+		err = sqliteStore.Connect(config.Store.ConnectionString)
+		if err != nil {
+			return err
+		}
+		store = sqliteStore
+	}
+
 	server := server.NewServer(store)
 	server.ChunkSize = config.Server.ChunkSize
 

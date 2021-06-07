@@ -3,3 +3,6 @@ port: 8080
 secret:
   # Obviously do not use this secret for purposes other than local testing
   value: 7e516ae689df7f5ef1b2d1a9fe0295802c19dacad26c87669fa823e357a814ef
+store:
+  adapter: sqlite
+  connectionString: ./db.sqlite

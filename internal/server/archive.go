@@ -71,7 +71,7 @@ func (server *Server) handleArchiveTokenCreation(ctx *fiber.Ctx) error {
 	}
 
 	archiveId := ctx.Params("archiveId")
-	_, archiveExists, err := server.store.Archive(archiveId)
+	archive, archiveExists, err := server.store.Archive(archiveId)
 	if err != nil {
 		log.Error("Unable to get archive", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
@@ -82,7 +82,7 @@ func (server *Server) handleArchiveTokenCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	token, err := server.store.CreateToken(archiveId, request.Lifetime)
+	token, err := archive.CreateToken(request.Lifetime)
 	if err != nil {
 		log.Error("Failed to create token", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
