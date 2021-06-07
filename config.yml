@@ -6,3 +6,6 @@ secret:
 store:
   adapter: sqlite
   connectionString: ./db.sqlite
+data:
+  adapter: local
+  directory: ./data

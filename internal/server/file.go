@@ -173,6 +173,13 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 		}
 
 		log.Debugf("Read %d bytes for file '%s'", length, file.Name())
+		err = server.dataStore.Write(archiveId, fileId, buffer)
+		if err != nil {
+			log.Error("Unable to write to file: ", err.Error())
+			ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+			return nil
+		}
 	}
+
 	return nil
 }

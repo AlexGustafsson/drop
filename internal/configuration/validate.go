@@ -38,5 +38,17 @@ func Validate(config *Configuration) []error {
 		errors = append(errors, fmt.Errorf("The server chunk size must be evenly divisible by 64"))
 	}
 
+	if config.Data.Adapter == "local" && config.Data.Directory == "" {
+		errors = append(errors, fmt.Errorf("A directory required for the '%s' adapter", config.Data.Adapter))
+	}
+
+	if config.Data.Adapter == "" {
+		errors = append(errors, fmt.Errorf("A data adapter must be specified"))
+	} else {
+		if config.Data.Adapter != "local" {
+			errors = append(errors, fmt.Errorf("Unsupported data adapter '%s'", config.Data.Adapter))
+		}
+	}
+
 	return errors
 }

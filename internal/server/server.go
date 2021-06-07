@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	"github.com/AlexGustafsson/drop/internal/data"
 	"github.com/AlexGustafsson/drop/internal/server/middleware/authenticator"
 	"github.com/AlexGustafsson/drop/internal/server/middleware/logger"
 	"github.com/AlexGustafsson/drop/internal/store"
@@ -12,12 +13,14 @@ import (
 
 type Server struct {
 	store     store.Store
+	dataStore data.DataStore
 	ChunkSize int
 }
 
-func NewServer(store store.Store) *Server {
+func NewServer(stateStore store.Store, dataStore data.DataStore) *Server {
 	return &Server{
-		store:     store,
+		store:     stateStore,
+		dataStore: dataStore,
 		ChunkSize: 1024 * 1024, // 1MiB
 	}
 }

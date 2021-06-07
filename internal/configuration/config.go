@@ -24,6 +24,10 @@ type Configuration struct {
 	Server struct {
 		ChunkSize int `koanf:"chunkSize"`
 	} `koanf:"server"`
+	Data struct {
+		Adapter   string `koanf:"adapter"`
+		Directory string `koanf:"directory"`
+	} `koanf:"data"`
 }
 
 // ConfiguredSecret returns the configured secret

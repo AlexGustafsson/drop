@@ -36,6 +36,10 @@ func (store *SqliteStore) Connect(connectionString string) error {
 	return nil
 }
 
+func (store *SqliteStore) Disconnect() error {
+	return store.db.Close()
+}
+
 func (store *SqliteStore) Secret() []byte {
 	return store.secret
 }

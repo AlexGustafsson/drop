@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/AlexGustafsson/drop/internal/configuration"
+	"github.com/AlexGustafsson/drop/internal/data"
+	"github.com/AlexGustafsson/drop/internal/data/local"
 	"github.com/AlexGustafsson/drop/internal/server"
 	"github.com/AlexGustafsson/drop/internal/store"
 	"github.com/AlexGustafsson/drop/internal/store/memory"
@@ -37,19 +39,30 @@ func serveCommand(context *cli.Context) error {
 		return err
 	}
 
-	var store store.Store
+	var stateStore store.Store
 	if config.Store.Adapter == "memory" {
-		store = memory.New(secret)
+		stateStore = memory.New(secret)
 	} else if config.Store.Adapter == "sqlite" {
 		sqliteStore := sqlite.New(secret)
 		err = sqliteStore.Connect(config.Store.ConnectionString)
 		if err != nil {
 			return err
 		}
-		store = sqliteStore
+		defer sqliteStore.Disconnect()
+		stateStore = sqliteStore
 	}
 
-	server := server.NewServer(store)
+	var dataStore data.DataStore
+	if config.Data.Adapter == "local" {
+		localStore := local.New(config.Data.Directory)
+		err = localStore.Prepare()
+		if err != nil {
+			return err
+		}
+		dataStore = localStore
+	}
+
+	server := server.NewServer(stateStore, dataStore)
 	server.ChunkSize = config.Server.ChunkSize
 
 	err = server.Start(config.Address, config.Port)
