@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"github.com/AlexGustafsson/drop/internal/store"
+	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/google/uuid"
 )
 
@@ -21,7 +21,7 @@ func (store *MemoryStore) Secret() []byte {
 	return store.secret
 }
 
-func (store *MemoryStore) CreateArchive(name string, maximumFileCount int, maximumFileSize int, maximumSize int) (store.Archive, error) {
+func (store *MemoryStore) CreateArchive(name string, maximumFileCount int, maximumFileSize int, maximumSize int) (state.Archive, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (store *MemoryStore) CreateArchive(name string, maximumFileCount int, maxim
 	return archive, nil
 }
 
-func (store *MemoryStore) Archive(archiveId string) (store.Archive, bool, error) {
+func (store *MemoryStore) Archive(archiveId string) (state.Archive, bool, error) {
 	archive, ok := store.archives[archiveId]
 	return archive, ok, nil
 }

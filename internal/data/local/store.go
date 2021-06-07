@@ -41,3 +41,18 @@ func (store *LocalDataStore) Write(archiveId string, fileId string, content []by
 
 	return nil
 }
+
+func (store *LocalDataStore) Exists(archiveId string, fileId string) (bool, error) {
+	// TODO: properly resolve path
+	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
+	_, err := os.Stat(filePath)
+	if err != nil {
+		if err == os.ErrNotExist {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
+}

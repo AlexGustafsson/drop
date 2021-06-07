@@ -6,22 +6,22 @@ import (
 	"github.com/AlexGustafsson/drop/internal/data"
 	"github.com/AlexGustafsson/drop/internal/server/middleware/authenticator"
 	"github.com/AlexGustafsson/drop/internal/server/middleware/logger"
-	"github.com/AlexGustafsson/drop/internal/store"
+	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/gofiber/fiber/v2"
 	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
-	store     store.Store
-	dataStore data.DataStore
-	ChunkSize int
+	stateStore state.Store
+	dataStore  data.Store
+	ChunkSize  int
 }
 
-func NewServer(stateStore store.Store, dataStore data.DataStore) *Server {
+func NewServer(stateStore state.Store, dataStore data.Store) *Server {
 	return &Server{
-		store:     stateStore,
-		dataStore: dataStore,
-		ChunkSize: 1024 * 1024, // 1MiB
+		stateStore: stateStore,
+		dataStore:  dataStore,
+		ChunkSize:  1024 * 1024, // 1MiB
 	}
 }
 
@@ -30,7 +30,7 @@ func (server *Server) Start(address string, port uint16) error {
 		DisableStartupMessage: true,
 	})
 	app.Server().StreamRequestBody = true
-	app.Use(authenticator.New(server.store.Secret()))
+	app.Use(authenticator.New(server.stateStore.Secret()))
 	app.Use(logger.New())
 
 	app.Post("/api/v1/archive", server.handleArchiveCreation)

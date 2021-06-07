@@ -7,9 +7,9 @@ import (
 	"github.com/AlexGustafsson/drop/internal/data"
 	"github.com/AlexGustafsson/drop/internal/data/local"
 	"github.com/AlexGustafsson/drop/internal/server"
-	"github.com/AlexGustafsson/drop/internal/store"
-	"github.com/AlexGustafsson/drop/internal/store/memory"
-	"github.com/AlexGustafsson/drop/internal/store/sqlite"
+	"github.com/AlexGustafsson/drop/internal/state"
+	"github.com/AlexGustafsson/drop/internal/state/memory"
+	"github.com/AlexGustafsson/drop/internal/state/sqlite"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -39,7 +39,7 @@ func serveCommand(context *cli.Context) error {
 		return err
 	}
 
-	var stateStore store.Store
+	var stateStore state.Store
 	if config.Store.Adapter == "memory" {
 		stateStore = memory.New(secret)
 	} else if config.Store.Adapter == "sqlite" {
@@ -52,7 +52,7 @@ func serveCommand(context *cli.Context) error {
 		stateStore = sqliteStore
 	}
 
-	var dataStore data.DataStore
+	var dataStore data.Store
 	if config.Data.Adapter == "local" {
 		localStore := local.New(config.Data.Directory)
 		err = localStore.Prepare()

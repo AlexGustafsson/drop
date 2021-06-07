@@ -2,7 +2,7 @@ package sqlite
 
 import (
 	"github.com/AlexGustafsson/drop/internal/authentication"
-	"github.com/AlexGustafsson/drop/internal/store"
+	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/google/uuid"
 )
 
@@ -35,7 +35,7 @@ func (archive *SqliteArchive) MaximumSize() int {
 	return archive.maximumSize
 }
 
-func (archive *SqliteArchive) File(id string) (store.File, bool, error) {
+func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	statement, err := archive.store.db.Prepare(`
 		SELECT
 		id, name, lastModified, size, mime
@@ -119,7 +119,7 @@ func (archive *SqliteArchive) CreateToken(lifetime int) (string, error) {
 	return token, nil
 }
 
-func (archive *SqliteArchive) CreateFile(name string, lastModified int, size int, mime string) (store.File, error) {
+func (archive *SqliteArchive) CreateFile(name string, lastModified int, size int, mime string) (state.File, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err

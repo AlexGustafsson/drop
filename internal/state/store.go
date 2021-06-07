@@ -1,4 +1,4 @@
-package store
+package state
 
 // File is a
 type File interface {

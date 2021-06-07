@@ -3,7 +3,7 @@ package sqlite
 import (
 	"database/sql"
 
-	"github.com/AlexGustafsson/drop/internal/store"
+	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -44,7 +44,7 @@ func (store *SqliteStore) Secret() []byte {
 	return store.secret
 }
 
-func (store *SqliteStore) CreateArchive(name string, maximumFileCount int, maximumFileSize int, maximumSize int) (store.Archive, error) {
+func (store *SqliteStore) CreateArchive(name string, maximumFileCount int, maximumFileSize int, maximumSize int) (state.Archive, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (store *SqliteStore) CreateArchive(name string, maximumFileCount int, maxim
 	return archive, nil
 }
 
-func (store *SqliteStore) Archive(archiveId string) (store.Archive, bool, error) {
+func (store *SqliteStore) Archive(archiveId string) (state.Archive, bool, error) {
 	statement, err := store.db.Prepare(`
 		SELECT
 		id, name, maximumFileCount, maximumFileSize, maximumSize

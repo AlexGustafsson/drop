@@ -2,7 +2,7 @@ package memory
 
 import (
 	"github.com/AlexGustafsson/drop/internal/authentication"
-	"github.com/AlexGustafsson/drop/internal/store"
+	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/google/uuid"
 )
 
@@ -37,7 +37,7 @@ func (archive *MemoryArchive) MaximumSize() int {
 	return archive.maximumSize
 }
 
-func (archive *MemoryArchive) File(id string) (store.File, bool, error) {
+func (archive *MemoryArchive) File(id string) (state.File, bool, error) {
 	file, ok := archive.files[id]
 	return file, ok, nil
 }
@@ -57,7 +57,7 @@ func (archive *MemoryArchive) CreateToken(lifetime int) (string, error) {
 	return token, nil
 }
 
-func (archive *MemoryArchive) CreateFile(name string, lastModified int, size int, mime string) (store.File, error) {
+func (archive *MemoryArchive) CreateFile(name string, lastModified int, size int, mime string) (state.File, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err

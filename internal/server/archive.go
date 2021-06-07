@@ -36,7 +36,7 @@ func (server *Server) handleArchiveCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	archive, err := server.store.CreateArchive(
+	archive, err := server.stateStore.CreateArchive(
 		request.Name,
 		request.MaximumFileCount,
 		request.MaximumFileSize,
@@ -71,7 +71,7 @@ func (server *Server) handleArchiveTokenCreation(ctx *fiber.Ctx) error {
 	}
 
 	archiveId := ctx.Params("archiveId")
-	archive, archiveExists, err := server.store.Archive(archiveId)
+	archive, archiveExists, err := server.stateStore.Archive(archiveId)
 	if err != nil {
 		log.Error("Unable to get archive", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)

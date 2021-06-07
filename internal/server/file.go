@@ -46,7 +46,7 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	archive, archiveExists, err := server.store.Archive(archiveId)
+	archive, archiveExists, err := server.stateStore.Archive(archiveId)
 	if err != nil {
 		log.Error("Unable to get archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
@@ -117,7 +117,7 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	archive, archiveExists, err := server.store.Archive(archiveId)
+	archive, archiveExists, err := server.stateStore.Archive(archiveId)
 	if err != nil {
 		log.Error("Unable to get archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
