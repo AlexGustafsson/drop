@@ -1,11 +1,16 @@
+export function generateBytes(size: number): ArrayBuffer {
+  const buffer = new ArrayBuffer(size);
+  const view = new Uint8Array(buffer);
+  crypto.getRandomValues(view);
+  return buffer;
+}
+
 /**
  * Generate a 256-bit securely random key.
  * @returns 32 bytes ArrayBuffer.
  */
 export function generateKey(): ArrayBuffer {
-  const key = new Uint8Array(32);
-  crypto.getRandomValues(key);
-  return key;
+  return generateBytes(32);
 }
 
 /**
@@ -13,9 +18,7 @@ export function generateKey(): ArrayBuffer {
  * @returns 12 bytes ArrayBuffer.
  */
 export function generateNonce(): ArrayBuffer {
-  const nonce = new Uint8Array(12);
-  crypto.getRandomValues(nonce);
-  return nonce;
+  return generateBytes(12);
 }
 
 // Likely only works for little endian systems

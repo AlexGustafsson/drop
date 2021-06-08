@@ -33,6 +33,7 @@ func (store *SqliteStore) setup() error {
 			lastModified integer NOT NULL,
 			size integer NOT NULL,
 			mime string NOT NULL,
+			nonce string NOT NULL,
 			FOREIGN KEY (archiveId) REFERENCES archives (id)
 		)
 	`)

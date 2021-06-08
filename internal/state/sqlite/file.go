@@ -6,6 +6,7 @@ type SqliteFile struct {
 	lastModified int
 	size         int
 	mime         string
+	nonce        string
 }
 
 func (file *SqliteFile) Id() string {
@@ -26,4 +27,8 @@ func (file *SqliteFile) Size() int {
 
 func (file *SqliteFile) Mime() string {
 	return file.mime
+}
+
+func (file *SqliteFile) Nonce() string {
+	return file.nonce
 }

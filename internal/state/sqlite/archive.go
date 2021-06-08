@@ -119,7 +119,7 @@ func (archive *SqliteArchive) CreateToken(lifetime int) (string, error) {
 	return token, nil
 }
 
-func (archive *SqliteArchive) CreateFile(name string, lastModified int, size int, mime string) (state.File, error) {
+func (archive *SqliteArchive) CreateFile(name string, lastModified int, size int, mime string, nonce string) (state.File, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -128,16 +128,16 @@ func (archive *SqliteArchive) CreateFile(name string, lastModified int, size int
 
 	statement, err := archive.store.db.Prepare(`
 		INSERT INTO files
-		(id, archiveId, name, lastModified, size, mime)
+		(id, archiveId, name, lastModified, size, mime, nonce)
 		VALUES
-		(?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return nil, err
 	}
 	defer statement.Close()
 
-	_, err = statement.Exec(id, archive.id, name, lastModified, size, mime)
+	_, err = statement.Exec(id, archive.id, name, lastModified, size, mime, nonce)
 	if err != nil {
 		return nil, err
 	}

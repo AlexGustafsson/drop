@@ -7,6 +7,7 @@ type File interface {
 	LastModified() int
 	Size() int
 	Mime() string
+	Nonce() string
 }
 
 // Archive is an archive of files
@@ -21,7 +22,7 @@ type Archive interface {
 	// CreateToken creates a token for an archive
 	CreateToken(lifetime int) (string, error)
 	// CreateFile creates a file in an archive
-	CreateFile(name string, lastModified int, size int, mime string) (File, error)
+	CreateFile(name string, lastModified int, size int, mime string, nonce string) (File, error)
 }
 
 // Store represents a central state store

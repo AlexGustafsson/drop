@@ -14,6 +14,7 @@ type CreateFileRequest struct {
 	LastModified int    `json:"lastModified"`
 	Size         int    `json:"size"`
 	Mime         string `json:"mime"`
+	Nonce        string `json:"nonce"`
 }
 
 // CreateFileResponse is the response for the create file API.
@@ -73,7 +74,7 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	file, err := archive.CreateFile(request.Name, request.LastModified, request.Size, request.Mime)
+	file, err := archive.CreateFile(request.Name, request.LastModified, request.Size, request.Mime, request.Nonce)
 	if err != nil {
 		log.Error("Unable to create file: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)

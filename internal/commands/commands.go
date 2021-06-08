@@ -72,4 +72,29 @@ var Commands = []*cli.Command{
 			},
 		},
 	},
+	{
+		Name:   "decrypt",
+		Usage:  "Decrypt a file",
+		Action: decryptCommand,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "inputFile",
+				Aliases: []string{"i"},
+				Usage:   "Path to input file",
+			},
+			&cli.StringFlag{
+				Name:    "outputFile",
+				Aliases: []string{"o"},
+				Usage:   "Path to output file. The file is written to stdout if not specified",
+			},
+			&cli.StringFlag{
+				Name:  "secret",
+				Usage: "The secret used to encrypt the file",
+			},
+			&cli.StringFlag{
+				Name:  "nonce",
+				Usage: "The nonce used to encrypt the file",
+			},
+		},
+	},
 }

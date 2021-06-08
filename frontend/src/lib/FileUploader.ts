@@ -1,5 +1,5 @@
 import { encryptFile } from "./crypto/chacha20";
-import { hexToBuffer } from "./crypto/utils";
+import { bufferToHex, hexToBuffer, generateNonce } from "./crypto/utils";
 
 export type FileUploadEventHandler = (file: File, parameter?: any) => void;
 export default class FileUploader {
@@ -7,14 +7,12 @@ export default class FileUploader {
   private token: string;
   private archiveId: string;
   private key: ArrayBuffer;
-  private nonce: ArrayBuffer;
 
-  constructor(token: string, archiveId: string, key: ArrayBuffer, nonce: ArrayBuffer) {
+  constructor(token: string, archiveId: string, key: ArrayBuffer) {
     this.listeners = {}
     this.token = token;
     this.archiveId = archiveId;
     this.key = key;
-    this.nonce = nonce;
   }
 
   private onError(file: File, error: Error) {
@@ -22,7 +20,7 @@ export default class FileUploader {
       handler(file, error);
   }
 
-  async createFile(file: File): Promise<string> {
+  async createFile(file: File, nonce: ArrayBuffer): Promise<string> {
     const request = new Request(`/api/v1/archive/${this.archiveId}/file`, {
       method: "POST",
       headers: new Headers({
@@ -33,7 +31,8 @@ export default class FileUploader {
         name: file.name,
         lastModified: file.lastModified,
         size: file.size,
-        type: file.type,
+        mime: file.type,
+        nonce: bufferToHex(nonce),
       }),
     });
 
@@ -43,11 +42,11 @@ export default class FileUploader {
   }
 
   async upload(file: File) {
-    const id = await this.createFile(file);
-    const {key, nonce} = this;
+    const nonce = generateNonce();
+    const id = await this.createFile(file, nonce);
     let uploadProgress = 0;
     let encryptProgress = 0;
-    encryptFile(key, nonce, file, (error, chunk, offset) => {
+    encryptFile(this.key, nonce, file, (error, chunk, offset) => {
       if (error != null) {
         // TODO: handle
         return;

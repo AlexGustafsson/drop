@@ -6,6 +6,7 @@ type MemoryFile struct {
 	lastModified int
 	size         int
 	mime         string
+	nonce        string
 }
 
 func (file *MemoryFile) Id() string {
@@ -26,4 +27,8 @@ func (file *MemoryFile) Size() int {
 
 func (file *MemoryFile) Mime() string {
 	return file.mime
+}
+
+func (file *MemoryFile) Nonce() string {
+	return file.nonce
 }

@@ -57,7 +57,7 @@ func (archive *MemoryArchive) CreateToken(lifetime int) (string, error) {
 	return token, nil
 }
 
-func (archive *MemoryArchive) CreateFile(name string, lastModified int, size int, mime string) (state.File, error) {
+func (archive *MemoryArchive) CreateFile(name string, lastModified int, size int, mime string, nonce string) (state.File, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -70,6 +70,7 @@ func (archive *MemoryArchive) CreateFile(name string, lastModified int, size int
 		lastModified: lastModified,
 		size:         size,
 		mime:         mime,
+		nonce:        nonce,
 	}
 
 	archive.files[id] = file

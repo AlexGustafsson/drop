@@ -107,6 +107,9 @@ paths:
                 mime:
                   type: string
                   description: The MIME type of the file.
+                nonce:
+                  type: string
+                  description: Hex-encoded nonce used for encryption.
         responses:
           "201":
             description: Created
