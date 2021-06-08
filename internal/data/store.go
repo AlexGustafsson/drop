@@ -1,5 +1,7 @@
 package data
 
+import "io"
+
 // Store represents a central data store
 type Store interface {
 	// Write writes a set of bytes
@@ -8,4 +10,6 @@ type Store interface {
 	Exists(archiveId string, fileId string) (bool, error)
 	// Touch creates an empty file
 	Touch(archiveId string, fileId string) error
+	// Reader returns a reader for the file
+	Reader(archiveId string, fileId string) (io.Reader, error)
 }

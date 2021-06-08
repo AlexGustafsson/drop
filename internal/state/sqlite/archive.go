@@ -38,7 +38,7 @@ func (archive *SqliteArchive) MaximumSize() int {
 func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	statement, err := archive.store.db.Prepare(`
 		SELECT
-		id, name, lastModified, size, mime
+		id, name, lastModified, size, mime, nonce
 		FROM files
 		WHERE files.archiveId = ? AND files.id = ?
 	`)
@@ -58,7 +58,7 @@ func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	}
 
 	var file SqliteFile
-	err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime)
+	err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime, &file.nonce)
 	if err != nil {
 		return nil, false, nil
 	}

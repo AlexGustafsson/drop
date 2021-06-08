@@ -2,6 +2,7 @@ package local
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -68,4 +69,10 @@ func (store *LocalDataStore) Touch(archiveId string, fileId string) error {
 	}
 	file.Close()
 	return err
+}
+
+func (store *LocalDataStore) Reader(archiveId string, fileId string) (io.Reader, error) {
+	// TODO: Allocate the file
+	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
+	return os.OpenFile(filePath, os.O_RDONLY, 0660)
 }
