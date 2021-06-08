@@ -15,6 +15,8 @@ export function encryptBlock(key: ArrayBuffer, nonce: ArrayBuffer, block: Uint8A
   if (block.byteLength > 64)
     throw new Error(`The block must not be larger than 64 bytes, was ${block.byteLength}`);
 
+  // TODO: Reuse the same state instead, bake in with a chacha instance like go
+  // check for rollback etc.
   const keyStream = new State()
     .withKey(key)
     .withBlockCount(blockCount)
@@ -26,7 +28,7 @@ export function encryptBlock(key: ArrayBuffer, nonce: ArrayBuffer, block: Uint8A
     ciphertext[i] = block[i] ^ keyStream[i];
 }
 
-export function encrypt(key: ArrayBuffer, nonce: ArrayBuffer, message: ArrayBuffer, ciphertext: ArrayBuffer, blockOffset=1) {
+export function encrypt(key: ArrayBuffer, nonce: ArrayBuffer, message: ArrayBuffer, ciphertext: ArrayBuffer, offset = 0) {
   if (ciphertext.byteLength > message.byteLength)
     throw new Error("The ciphertext does not fit the message");
   if (!(key instanceof ArrayBuffer))
@@ -38,11 +40,11 @@ export function encrypt(key: ArrayBuffer, nonce: ArrayBuffer, message: ArrayBuff
   if (!(ciphertext instanceof ArrayBuffer))
     throw new Error("ciphertext must be ArrayBuffer");
 
-  for (let i = 0; i < Math.ceil(message.byteLength / 64); i++) {
-    const blockIndex = blockOffset + i;
-    const blockSize = Math.min(message.byteLength - (blockIndex - 1) * 64, 64);
-    const block = new Uint8Array(message, (blockIndex - 1) * 64, blockSize);
-    const ciphertextBlock = new Uint8Array(ciphertext, (blockIndex - 1) * 64, blockSize);
+  for (let blockOffset = 0; blockOffset < message.byteLength; blockOffset += 64) {
+    const blockIndex = 1 + (blockOffset + offset) / 64;
+    const blockSize = Math.min(message.byteLength - blockOffset, 64)
+    const block = new Uint8Array(message, blockOffset, blockSize);
+    const ciphertextBlock = new Uint8Array(ciphertext, blockOffset, blockSize);
     encryptBlock(
       key,
       nonce,
@@ -53,6 +55,12 @@ export function encrypt(key: ArrayBuffer, nonce: ArrayBuffer, message: ArrayBuff
   }
 }
 
+// TODO: Rewrite as a generator with yield instead, no need for callback then
+// TODO: Rewrite with larger block support, like the go implementation
+// generate as large of a key stream that's necessary, then XOR instead
+// of doing it block by block. Still make sure that it has to be on a block
+// basis, that is, increasing the counter by 1 for each 64 bytes
+// Should reduce call stack, memory allocations (count, not size)
 export type ChunkHandler = (error: DOMException, chunk: ArrayBuffer, offset: number) => void;
 export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: File, onCiphertextChunk: ChunkHandler) {
   if (!(key instanceof ArrayBuffer))
@@ -71,7 +79,6 @@ export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: Fi
       reader.readAsArrayBuffer(slice);
     };
 
-    let blockIndex = 1;
     let offset = 0;
     reader.onload = event => {
       if (event.target.error) {
@@ -82,7 +89,7 @@ export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: Fi
       // Encrypt each block of the chunk
       const chunk = event.target.result as ArrayBuffer;
       const ciphertext = new ArrayBuffer(chunk.byteLength);
-      encrypt(key, nonce, chunk, ciphertext, blockIndex);
+      encrypt(key, nonce, chunk, ciphertext, offset);
       onCiphertextChunk(null, ciphertext, offset);
 
       offset += chunk.byteLength;
