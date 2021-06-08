@@ -3,6 +3,7 @@ package configuration
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/hex"
 	"io/ioutil"
 
 	log "github.com/sirupsen/logrus"
@@ -38,7 +39,12 @@ func (config *Configuration) ConfiguredSecret() ([]byte, error) {
 	}
 
 	if config.Secret.Value != "" {
-		config.Secret.cache = []byte(config.Secret.Value)
+		secret, err := hex.DecodeString(config.Secret.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		config.Secret.cache = secret
 		log.Debug("Configured secret by value")
 		return config.Secret.cache, nil
 	}
@@ -50,7 +56,13 @@ func (config *Configuration) ConfiguredSecret() ([]byte, error) {
 		}
 
 		config.Secret.cache = bytes.TrimSpace(buffer)
-		log.Debug("Read secret from file")
+		secret, err := hex.DecodeString(config.Secret.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		config.Secret.cache = secret
+		log.Debug("Configured secret from file")
 		return config.Secret.cache, nil
 	}
 

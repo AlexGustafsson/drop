@@ -13,8 +13,8 @@ func Validate(config *Configuration) []error {
 	if err != nil {
 		errors = append(errors, fmt.Errorf("Unable to read secret: %v", err))
 	} else {
-		if len(secret) < 32 {
-			errors = append(errors, fmt.Errorf("The size of the secret must not be less then 32 bytes"))
+		if len(secret) != 32 {
+			errors = append(errors, fmt.Errorf("The size of the secret must be 32 bytes"))
 		}
 	}
 
