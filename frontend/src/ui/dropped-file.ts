@@ -20,7 +20,8 @@ export default class DroppedFile {
   private iconElement: SVGElement;
   private statusElement: HTMLElement;
   private progressElement: HTMLElement;
-  private progressBarElement: HTMLElement;
+  private uploadProgressBarElement: HTMLElement;
+  private encryptProgressBarElement: HTMLElement;
 
   public element: HTMLElement;
   public file: File;
@@ -49,12 +50,21 @@ export default class DroppedFile {
     this.progressElement.classList.add("progress");
     this.element.appendChild(this.progressElement);
 
-    this.progressBarElement = document.createElement("div");
-    this.progressElement.appendChild(this.progressBarElement);
+    this.uploadProgressBarElement = document.createElement("div");
+    this.uploadProgressBarElement.classList.add("upload");
+    this.progressElement.appendChild(this.uploadProgressBarElement);
+
+    this.encryptProgressBarElement = document.createElement("div");
+    this.encryptProgressBarElement.classList.add("encrypt");
+    this.progressElement.appendChild(this.encryptProgressBarElement);
   }
 
-  setProgress(value: number) {
-    this.progressBarElement.style.width = `${Math.round(value * 100)}%`;
+  setUploadProgress(value: number) {
+    this.uploadProgressBarElement.style.width = `${Math.round(value * 100)}%`;
     this.statusElement.innerText = `${Math.round(value * 100)}%`;
+  }
+
+  setEncryptProgress(value: number) {
+    this.encryptProgressBarElement.style.width = `${Math.round(value * 100)}%`;
   }
 }

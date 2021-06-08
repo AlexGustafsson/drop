@@ -171,6 +171,36 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 		return nil
 	}
 
+	contentRangeHeader := ctx.Get("Content-Range")
+	rangeStart := uint64(0)
+	rangeEnd := uint64(file.Size())
+
+	if contentRangeHeader != "" {
+		var rangeUnit string
+		var rangeSize uint64
+		rangeUnit, rangeStart, rangeEnd, rangeSize, err = parseContentRange(contentRangeHeader)
+		if err != nil {
+			log.Errorf("Unable to parse Content-Range header: ", err.Error())
+			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
+			return nil
+		}
+
+		// Only bytes are supported
+		if rangeUnit != "bytes" {
+			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
+			return nil
+		}
+
+		// Incoherent sizes
+		if rangeSize != uint64(file.Size()) {
+			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
+			return nil
+		}
+	}
+
+	// TODO: Validate sizes and range
+	log.Debugf("Got request to write from %d-%d", rangeStart, rangeEnd)
+
 	reader := ctx.Context().RequestBodyStream()
 	buffer := make([]byte, 0, server.ChunkSize)
 	for {
@@ -186,8 +216,9 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 			}
 		}
 
+		// TODO: Validate sizes
 		log.Debugf("Read %d bytes for file '%s'", length, file.Name())
-		err = server.dataStore.Write(archiveId, fileId, buffer)
+		err = server.dataStore.Write(archiveId, fileId, buffer, rangeStart)
 		if err != nil {
 			log.Error("Unable to write to file: ", err.Error())
 			ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)

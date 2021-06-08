@@ -45,50 +45,47 @@ export default class FileUploader {
   async upload(file: File) {
     const id = await this.createFile(file);
     const {key, nonce} = this;
-    const fileStream = new ReadableStream({
-      start(controller) {
-        encryptFile(key, nonce, file, (error, chunk, offset) => {
-          if (error != null) {
-            // TODO: handle
-            return;
-          }
-
-          controller.enqueue(chunk);
-        });
+    let uploadProgress = 0;
+    let encryptProgress = 0;
+    encryptFile(key, nonce, file, (error, chunk, offset) => {
+      if (error != null) {
+        // TODO: handle
+        return;
       }
+      encryptProgress += chunk.byteLength;
+      for (const handler of this.listeners["encrypt"] || [])
+        handler(file, encryptProgress / file.size);
+
+      const request = new XMLHttpRequest();
+      request.open("POST", `/api/v1/archive/${this.archiveId}/file/${id}`, true);
+      request.setRequestHeader("Authorization", `Bearer ${this.token}`);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + chunk.byteLength}/${file.size}`);
+
+      // Doesn't seem to be supported for POST?
+      // request.onprogress = event => {
+      //   uploadProgress += event.loaded;
+      //   for (const handler of this.listeners["uploadprogress"] || [])
+      //     handler(file, uploadProgress / file.size);
+      // };
+      request.onreadystatechange = () => {
+        if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+          uploadProgress += chunk.byteLength;
+          if (uploadProgress === file.size) {
+            for (const handler of this.listeners["done"] || [])
+              handler(file);
+          } else {
+            for (const handler of this.listeners["upload"] || [])
+              handler(file, uploadProgress / file.size);
+          }
+        }
+      };
+
+      const view = new Uint8Array(chunk, 0, chunk.byteLength);
+      request.send(view);
+
+      // TODO: Handle errors, report progress
     });
-
-    const {readable, writable} = new TransformStream();
-
-    fileStream.pipeTo(writable);
-
-    const request = new Request(`/api/v1/archive/${this.archiveId}/file/${id}`, {
-      method: "POST",
-      headers: new Headers({
-        "Authorization": `Bearer ${this.token}`,
-        "Content-Type": "application/json",
-      }),
-      mode: "same-origin",
-      body: readable,
-    });
-
-    await fetch(request, { mode: "same-origin", allowHTTP1ForStreamingUpload: true } as RequestInit);
-
-    // TODO:
-    // https://web.dev/fetch-upload-streaming/
-    // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream
-    // Rewrite things to use the streaming API instead? That way
-    // perhaps chunking becomes easier to handle...
-
-    // await encryptFile(this.key, this.nonce, file, (error, chunk, offset) => {
-    //   if (error !== null) {
-    //     this.onError(file, error);
-    //     return;
-    //   }
-    // });
-
-    for (const handler of this.listeners["done"] || [])
-      handler(file);
   }
 
   addEventListener(event: string, handler: FileUploadEventHandler) {

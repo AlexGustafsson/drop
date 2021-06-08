@@ -19,7 +19,8 @@ func (store *LocalDataStore) Prepare() error {
 	return os.MkdirAll(store.directory, 0771)
 }
 
-func (store *LocalDataStore) Write(archiveId string, fileId string, content []byte) error {
+func (store *LocalDataStore) Write(archiveId string, fileId string, content []byte, offset uint64) error {
+	// TODO: Seek to the location and write there
 	// TODO: properly resolve path
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0660)
@@ -59,6 +60,7 @@ func (store *LocalDataStore) Touch(archiveId string, fileId string) error {
 		return err
 	}
 
+	// TODO: Allocate the file
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
 	file, err := os.OpenFile(filePath, os.O_CREATE, 0660)
 	if err != nil {

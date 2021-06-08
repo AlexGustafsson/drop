@@ -72,10 +72,22 @@ async function main() {
   const droppedFileList: DroppedFile[] = [];
 
   fileUploader.addEventListener("done", file => {
-    console.log("Done", file);
     const index = filesList.indexOf(file);
     const droppedFile = droppedFileList[index];
-    droppedFile.setProgress(1);
+    droppedFile.setUploadProgress(1);
+    droppedFile.setEncryptProgress(1);
+  });
+
+  fileUploader.addEventListener("upload", (file, progress) => {
+    const index = filesList.indexOf(file);
+    const droppedFile = droppedFileList[index];
+    droppedFile.setUploadProgress(progress);
+  });
+
+  fileUploader.addEventListener("encrypt", (file, progress) => {
+    const index = filesList.indexOf(file);
+    const droppedFile = droppedFileList[index];
+    droppedFile.setEncryptProgress(progress);
   });
 
   fileUploader.addEventListener("error", (file, error: Error) => {
