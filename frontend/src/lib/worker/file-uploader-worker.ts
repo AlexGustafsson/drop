@@ -1,23 +1,22 @@
-import { encryptFile } from "./crypto/chacha20";
-import { bufferToHex, hexToBuffer, generateNonce } from "./crypto/utils";
 
-export type FileUploadEventHandler = (file: File, parameter?: any) => void;
+import type {InitializeMessage, Message, UploadFileMessage} from "./types";
+import { encryptFile } from "../crypto/chacha20";
+import { bufferToHex, hexToBuffer, generateNonce } from "../crypto/utils";
+
 export default class FileUploader {
-  private listeners: { [key: string]: FileUploadEventHandler[] };
   private token: string;
   private archiveId: string;
   private key: ArrayBuffer;
 
-  constructor(token: string, archiveId: string, key: ArrayBuffer) {
-    this.listeners = {}
-    this.token = token;
-    this.archiveId = archiveId;
-    this.key = key;
+  private sendMessage(message: Message) {
+    postMessage(message);
   }
 
-  private onError(file: File, error: Error) {
-    for (const handler of this.listeners["error"] || [])
-      handler(file, error);
+  private sendProgressMessage(internalFileId: string, encryptionProgress: number, uploadProgress: number) {
+    this.sendMessage({
+      type: "progress",
+      message: {internalFileId, encryptionProgress, uploadProgress},
+    });
   }
 
   async createFile(file: File, nonce: ArrayBuffer): Promise<string> {
@@ -41,19 +40,19 @@ export default class FileUploader {
     return body["id"] as string;
   }
 
-  async upload(file: File) {
+  async upload(file: File, internalFileId: string) {
     const nonce = generateNonce();
     const id = await this.createFile(file, nonce);
     let uploadProgress = 0;
-    let encryptProgress = 0;
+    let encryptionProgress = 0;
     encryptFile(this.key, nonce, file, (error, chunk, offset) => {
       if (error != null) {
         // TODO: handle
         return;
       }
-      encryptProgress += chunk.byteLength;
-      for (const handler of this.listeners["encrypt"] || [])
-        handler(file, encryptProgress / file.size);
+
+      encryptionProgress += chunk.byteLength;
+      this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
 
       const request = new XMLHttpRequest();
       request.open("POST", `/api/v1/archive/${this.archiveId}/file/${id}`, true);
@@ -61,35 +60,30 @@ export default class FileUploader {
       request.setRequestHeader("Content-Type", "application/json");
       request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + chunk.byteLength}/${file.size}`);
 
-      // Doesn't seem to be supported for POST?
-      // request.onprogress = event => {
-      //   uploadProgress += event.loaded;
-      //   for (const handler of this.listeners["uploadprogress"] || [])
-      //     handler(file, uploadProgress / file.size);
-      // };
       request.onreadystatechange = () => {
         if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
           uploadProgress += chunk.byteLength;
-          if (uploadProgress === file.size) {
-            for (const handler of this.listeners["done"] || [])
-              handler(file);
-          } else {
-            for (const handler of this.listeners["upload"] || [])
-              handler(file, uploadProgress / file.size);
-          }
+          this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
         }
       };
 
       const view = new Uint8Array(chunk, 0, chunk.byteLength);
       request.send(view);
 
-      // TODO: Handle errors, report progress
+      // TODO: Handle errors
     });
   }
 
-  addEventListener(event: string, handler: FileUploadEventHandler) {
-    if (!this.listeners[event])
-      this.listeners[event] = [];
-    this.listeners[event].push(handler);
+  handleMessage(event: MessageEvent) {
+    const message = event.data as Message;
+    if (message.type === "initialize") {
+      const initializeMessage = message.message as InitializeMessage;
+      this.key = hexToBuffer(initializeMessage.key);
+      this.token = initializeMessage.token;
+      this.archiveId = initializeMessage.archiveId;
+    } else if (message.type === "upload") {
+      const uploadMessage = message.message as UploadFileMessage;
+      this.upload(uploadMessage.file, uploadMessage.internalFileId);
+    }
   }
 }

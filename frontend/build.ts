@@ -10,7 +10,7 @@ async function main() {
   await rm("dist", { force: true, recursive: true });
 
   const buildResult = await build({
-    entryPoints: ["src/main.ts"],
+    entryPoints: ["src/main.ts", "src/worker.ts"],
     bundle: true,
     minify: true,
     sourcemap: true,
@@ -21,6 +21,7 @@ async function main() {
 
   const files: string[] = await readdir("./dist/static");
   const mainScriptPath = files.find(x => x.match(/^main-.*\.js$/));
+  const workerScriptPath = files.find(x => x.match(/^worker-.*\.js$/));
 
   const css = await readFile("./src/main.css");
   const styleResult = await postcss()
@@ -33,6 +34,9 @@ async function main() {
         inline: false,
       },
     });
+
+  const mainScript = (await readFile(`./dist/static/${mainScriptPath}`)).toString();
+  await writeFile(`./dist/static/${mainScriptPath}`, mainScript.replace(/\/static\/worker.js/, `/static/${workerScriptPath}`));
 
   const styleHash = createHash("md5").update(styleResult.css).digest("base64url").substr(0, 8).toUpperCase();
   await writeFile(`./dist/static/main-${styleHash}.css`, styleResult.css);

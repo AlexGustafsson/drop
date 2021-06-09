@@ -49,7 +49,7 @@ async function buildTypeScript(once = false) {
   };
 
   await build({
-    entryPoints: ["src/main.ts"],
+    entryPoints: ["src/main.ts", "src/worker.ts"],
     bundle: true,
     minify: true,
     sourcemap: true,

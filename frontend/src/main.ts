@@ -1,9 +1,7 @@
 import { Endianness, getEndianness } from "./lib/endianness";
-import {generateKey, generateNonce, hexToBuffer} from "./lib/crypto/utils";
-import {encryptFile} from "./lib/crypto/chacha20";
 import DroppedFile from "./ui/dropped-file";
 import Dropper from "./ui/dropper";
-import FileUploader from "./lib/FileUploader";
+import FileUploader from "./lib/worker/file-uploader";
 
 function disableBodyDragAndDrop() {
   document.body.addEventListener("dragover", (event: DragEvent) => {
@@ -65,7 +63,7 @@ async function main() {
 
   disableBodyDragAndDrop();
 
-  const fileUploader = new FileUploader(token, claims.archiveId, hexToBuffer(secret), new ArrayBuffer(12));
+  const fileUploader = new FileUploader(token, claims.archiveId, secret);
 
   // TODO: fix this ugly hack
   const filesList: File[] = [];

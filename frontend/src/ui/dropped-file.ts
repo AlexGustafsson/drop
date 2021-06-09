@@ -60,11 +60,13 @@ export default class DroppedFile {
   }
 
   setUploadProgress(value: number) {
+    console.log("upload", value);
     this.uploadProgressBarElement.style.width = `${Math.round(value * 100)}%`;
     this.statusElement.innerText = `${Math.round(value * 100)}%`;
   }
 
   setEncryptProgress(value: number) {
+    console.log("encrypt", value);
     this.encryptProgressBarElement.style.width = `${Math.round(value * 100)}%`;
   }
 }
