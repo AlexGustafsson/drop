@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/logo.png" alt="Logo">
+  <img src="assets/logo-240x240.png" alt="Logo">
 </p>
 <p align="center">
   <a href="https://github.com/AlexGustafsson/drop/blob/master/go.mod">
