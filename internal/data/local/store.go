@@ -21,14 +21,18 @@ func (store *LocalDataStore) Prepare() error {
 }
 
 func (store *LocalDataStore) Write(archiveId string, fileId string, content []byte, offset uint64) error {
-	// TODO: Seek to the location and write there
 	// TODO: properly resolve path
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0660)
+	file, err := os.OpenFile(filePath, os.O_WRONLY, 0660)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
+
+	_, err = file.Seek(int64(offset), 0)
+	if err != nil {
+		return err
+	}
 
 	_, err = file.Write(content)
 	if err != nil {
@@ -53,7 +57,7 @@ func (store *LocalDataStore) Exists(archiveId string, fileId string) (bool, erro
 	return true, nil
 }
 
-func (store *LocalDataStore) Touch(archiveId string, fileId string) error {
+func (store *LocalDataStore) Touch(archiveId string, fileId string, size uint64) error {
 	// TODO: properly resolve path
 	directoryPath := fmt.Sprintf("%s/%s", store.directory, archiveId)
 	err := os.MkdirAll(directoryPath, 0771)
@@ -61,14 +65,14 @@ func (store *LocalDataStore) Touch(archiveId string, fileId string) error {
 		return err
 	}
 
-	// TODO: Allocate the file
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
-	file, err := os.OpenFile(filePath, os.O_CREATE, 0660)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR, 0660)
 	if err != nil {
 		return err
 	}
-	file.Close()
-	return err
+	defer file.Close()
+
+	return file.Truncate(int64(size))
 }
 
 func (store *LocalDataStore) Reader(archiveId string, fileId string) (io.Reader, error) {

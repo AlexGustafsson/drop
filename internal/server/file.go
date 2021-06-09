@@ -81,7 +81,7 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	err = server.dataStore.Touch(archiveId, file.Id())
+	err = server.dataStore.Touch(archiveId, file.Id(), uint64(file.Size()))
 	if err != nil {
 		log.Error("Unable to touch file: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
