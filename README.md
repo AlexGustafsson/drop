@@ -149,7 +149,7 @@ make build
 
 #### Frontend
 
-The frontend is written entirely in TypeScript without using any framework (it's a single page). The app uses a web worker to handle the encryption and uploading of files in the background. The entire source is found in the `frontend` directory.
+The frontend is written entirely in TypeScript using React and built using Vite. The app uses a web worker to handle the encryption and uploading of files in the background. The entire source is found in the `frontend` directory.
 
 The only top-level build command available for the frontend is `make build/frontend`, which builds the frontend and outputs it to the `build/frontend` directory. For development, it's recommended to use the available commands via yarn or NPM instead.
 
@@ -163,29 +163,21 @@ yarn install
 
 # Build for production
 yarn build
-# Build in watch mode (builds on change)
+# Build in development mode on each change
 yarn build:watch
 
 ## Serving
 
-# Serve the application using the Python 3 http.server module
+# Serve the built application
 yarn serve
 
-# Build in watch mode and serve the application
+# Build in watch mode and serve the application continously with automatic reload
 yarn dev
-
-## Testing
-
-# Run tests available in Node
-yarn test:node
-# Build browser-based tests in watch mode
-yarn build:test
-# Build browser-based tests in watch mode and serve them
-# Visit http://localhost/dist/test/ to run the tests
-yarn dev:test
 ```
 
-It's often easiest to build the frontend in watch mode using `yarn build:watch` and then use the server to serve the application with `./build/drop serve`.
+Some features such as the Worker-based file upload does not work in Safari or Firefox when using the `yarn dev` command as these platforms have varying support for ECMAScript modules. To test in these browser, it may be easier to use `yarn build:watch` and run the go server to serve the files.
+
+In other cases, `yarn dev` will work well and automatically point to the API running on the standard port for the server.
 
 #### Server
 
