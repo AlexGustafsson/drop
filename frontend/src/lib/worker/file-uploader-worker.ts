@@ -1,15 +1,22 @@
 
-import type {InitializeMessage, Message, UploadFileMessage} from "./types";
+import type {Message, UploadFileMessage} from "./types";
 import { encryptFile } from "../crypto/chacha20";
-import { bufferToHex, hexToBuffer, generateNonce } from "../crypto/utils";
+import { bufferToHex, generateNonce } from "../crypto/utils";
 
 export default class FileUploader {
   private token: string;
   private archiveId: string;
   private key: ArrayBuffer;
 
+  constructor(token: string, archiveId: string, key: ArrayBuffer) {
+    this.token = token;
+    this.archiveId = archiveId;
+    this.key = key;
+  }
+
   private sendMessage(message: Message) {
-    postMessage(message);
+    // TODO: Make target origin configurable
+    postMessage(message, "*");
   }
 
   private sendProgressMessage(internalFileId: string, encryptionProgress: number, uploadProgress: number) {
@@ -46,7 +53,7 @@ export default class FileUploader {
     let uploadProgress = 0;
     let encryptionProgress = 0;
     encryptFile(this.key, nonce, file, (error, chunk, offset) => {
-      if (error != null) {
+      if (error != null || chunk === null) {
         // TODO: handle
         return;
       }
@@ -76,12 +83,7 @@ export default class FileUploader {
 
   handleMessage(event: MessageEvent) {
     const message = event.data as Message;
-    if (message.type === "initialize") {
-      const initializeMessage = message.message as InitializeMessage;
-      this.key = hexToBuffer(initializeMessage.key);
-      this.token = initializeMessage.token;
-      this.archiveId = initializeMessage.archiveId;
-    } else if (message.type === "upload") {
+    if (message.type === "upload") {
       const uploadMessage = message.message as UploadFileMessage;
       this.upload(uploadMessage.file, uploadMessage.internalFileId);
     }

@@ -9,7 +9,7 @@
 import State from "./state";
 
 // Block is 1-based
-export function encryptBlock(key: ArrayBuffer, nonce: ArrayBuffer, block: Uint8Array, blockCount: number, ciphertext: ArrayBuffer) {
+export function encryptBlock(key: ArrayBuffer, nonce: ArrayBuffer, block: Uint8Array, blockCount: number, ciphertext: Uint8Array) {
   if (block.byteLength > ciphertext.byteLength)
     throw new Error(`The ciphertext does not fit the message: ${block.byteLength} > ${ciphertext.byteLength}`);
   if (block.byteLength > 64)
@@ -61,7 +61,7 @@ export function encrypt(key: ArrayBuffer, nonce: ArrayBuffer, message: ArrayBuff
 // of doing it block by block. Still make sure that it has to be on a block
 // basis, that is, increasing the counter by 1 for each 64 bytes
 // Should reduce call stack, memory allocations (count, not size)
-export type ChunkHandler = (error: DOMException, chunk: ArrayBuffer, offset: number) => void;
+export type ChunkHandler = (error: DOMException | null, chunk: ArrayBuffer | null, offset: number) => void;
 export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: File, onCiphertextChunk: ChunkHandler) {
   if (!(key instanceof ArrayBuffer))
     throw new Error("key must be ArrayBuffer");
@@ -73,7 +73,7 @@ export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: Fi
   return new Promise<void>((resolve, reject) => {
     const reader = new FileReader();
 
-    const readChunk = offset => {
+    const readChunk = (offset: number) => {
       const actualChunkSize = Math.min(file.size - offset, chunkSize);
       const slice = file.slice(offset, offset + actualChunkSize);
       reader.readAsArrayBuffer(slice);
@@ -81,6 +81,9 @@ export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: Fi
 
     let offset = 0;
     reader.onload = event => {
+      if (event.target === null)
+        return;
+
       if (event.target.error) {
         onCiphertextChunk(event.target.error, null, 0);
         return;

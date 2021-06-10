@@ -1,11 +1,9 @@
-import * as chai from "chai";
 import { hexToBuffer } from "../utils";
-const { expect } = chai;
 
 import { encrypt, encryptBlock, decrypt, encryptFile, decryptFile } from "./";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 
-const generateBuffer = size => new Uint8Array(Array.from(Array(size).keys())).buffer;
+const generateBuffer = (size: number) => new Uint8Array(Array.from(Array(size).keys())).buffer;
 
 describe("ChaCha20", () => {
   it("survives roundtrip (arbitrary message)", () => {
@@ -73,8 +71,11 @@ describe("ChaCha20", () => {
     let before = performance.now();
     await encryptFile(key, nonce, plaintextFile, (error, chunk, offset) => {
       expect(error).to.equal(null);
-      const view = new Uint8Array(chunk);
-      encryptedView.set(view, offset);
+      expect(chunk).to.not.equal(null);
+      if (chunk !== null) {
+        const view = new Uint8Array(chunk);
+        encryptedView.set(view, offset);
+      }
     });
     let after = performance.now();
     console.log(`Encrypting ${size / (1024 * 1024)} MiB took ${after - before}ms`);
@@ -83,9 +84,12 @@ describe("ChaCha20", () => {
     before = performance.now();
     await decryptFile(key, nonce, encryptedFile, (error, chunk, offset) => {
       expect(error).to.equal(null);
-      const view = new Uint8Array(chunk);
-      const plaintextView = new Uint8Array(plaintextBuffer, offset, chunk.byteLength);
-      expect(view).to.deep.equal(plaintextView);
+      expect(chunk).to.not.equal(null);
+      if (chunk !== null) {
+        const view = new Uint8Array(chunk);
+        const plaintextView = new Uint8Array(plaintextBuffer, offset, chunk.byteLength);
+        expect(view).to.deep.equal(plaintextView);
+      }
     });
     after = performance.now();
     console.log(`Decrypting ${size / (1024 * 1024)} MiB took ${after - before}ms`);
