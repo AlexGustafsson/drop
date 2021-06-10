@@ -17,32 +17,3 @@ body {
   justify-content: center;
   font-family: system, -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
 }
-
-main {
-  background-color: white;
-  box-shadow: 0 19px 38px rgba(0,0,0,0.15), 0 15px 12px rgba(0,0,0,0.10);
-  border-radius: 25px;
-  max-width: 95%;
-  display: flex;
-  flex-direction: column;
-  padding: 50px 25px 30px 25px;
-  transition: 1s linear transform;
-  height: 400px;
-  box-sizing: border-box;
-  transition: 0.2s ease-out height;
-}
-
-#file-scroller {
-  overflow-x: false;
-  overflow-y: auto;
-  max-height: 280px;
-}
-
-ul, li {
-  padding: 0;
-  margin: 0;
-}
-
-ul {
-  list-style: none;
-}

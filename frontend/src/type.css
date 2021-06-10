@@ -24,3 +24,31 @@ h2, h3 {
 p {
   color: #2B2B2B;
 }
+
+a {
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  padding: 10px 10px;
+  border-radius: 5px;
+  margin: 2px 0;
+  cursor: pointer;
+  transition: 0.1s linear box-shadow;
+}
+
+button:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 7px 6px rgba(0,0,0,0.10);
+}
+
+button:active {
+  box-shadow: none;
+}
+
+button.primary {
+  background-color: #498CF9;
+  color: white;
+}
