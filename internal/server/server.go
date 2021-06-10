@@ -8,6 +8,7 @@ import (
 	"github.com/AlexGustafsson/drop/internal/server/middleware/logger"
 	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,6 +35,7 @@ func (server *Server) Start(address string, port uint16) error {
 	app.Server().StreamRequestBody = true
 	app.Use(authenticator.New(server.stateStore.Secret()))
 	app.Use(logger.New())
+	app.Use(cors.New())
 
 	app.Post("/api/v1/archive", server.handleArchiveCreation)
 	app.Post("/api/v1/archive/:archiveId/token", server.handleArchiveTokenCreation)
@@ -41,6 +43,9 @@ func (server *Server) Start(address string, port uint16) error {
 	app.Post("/api/v1/archive/:archiveId/file/:fileId", server.handleFileUpload)
 
 	app.Static("/", server.frontend)
+	app.Get("*", func(ctx *fiber.Ctx) error {
+		return ctx.SendFile(fmt.Sprintf("%s/index.html", server.frontend))
+	})
 
 	log.Infof("Starting server on %s:%d", address, port)
 	return app.Listen(fmt.Sprintf("%s:%d", address, port))
