@@ -1,4 +1,5 @@
 import type { Message, ProgressMessage } from "./types";
+import WorkerModule from "../../worker?worker";
 
 export type FileUploadEventHandler = (file: File, parameter?: any) => void;
 export default class FileUploader {
@@ -9,7 +10,7 @@ export default class FileUploader {
   constructor(token: string, archiveId: string, key: string) {
     this.listeners = {};
     this.files = {};
-    this.worker = new Worker("/static/worker.js");
+    this.worker = new WorkerModule();
     this.worker.addEventListener("message", this.handleMessage.bind(this));
     this.worker.addEventListener("error", this.handleError.bind(this));
     this.worker.addEventListener("messageerror", this.handleMessageError.bind(this));
@@ -17,7 +18,7 @@ export default class FileUploader {
   }
 
   private sendMessage(message: Message) {
-    this.worker.postMessage(message, []);
+    this.worker?.postMessage(message, []);
   }
 
   private sendInitializeMessage(token: string, archiveId: string, key: string) {

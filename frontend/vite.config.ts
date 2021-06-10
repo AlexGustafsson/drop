@@ -3,6 +3,7 @@ import reactRefresh from "@vitejs/plugin-react-refresh";
 import {readFile} from "fs/promises";
 import svgr from "@svgr/core";
 import esbuild from "esbuild";
+import type {UserConfigExport} from "vite";
 
 function svg() {
   return {
@@ -22,9 +23,16 @@ function svg() {
   }
 }
 
-export default defineConfig({
-  plugins: [
-    reactRefresh(),
-    svg(),
-  ]
-});
+export default ({ command, mode }) => {
+  const config: UserConfigExport = {
+    plugins: [
+      reactRefresh(),
+      svg(),
+    ],
+    define: {
+      "DROP_API_ROOT": mode === "development" ? "'http://localhost:8080'" : "''",
+    },
+  };
+
+  return defineConfig(config);
+}

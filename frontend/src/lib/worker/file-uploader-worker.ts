@@ -15,8 +15,10 @@ export default class FileUploader {
   }
 
   private sendMessage(message: Message) {
-    // TODO: Make target origin configurable
-    postMessage(message, "*");
+    // Without this TypeScript complains about postMessage requiring a second parameter,
+    // whilst in reality it does not
+    const post = postMessage as (message: any) => void;
+    post(message);
   }
 
   private sendProgressMessage(internalFileId: string, encryptionProgress: number, uploadProgress: number) {
@@ -27,7 +29,7 @@ export default class FileUploader {
   }
 
   async createFile(file: File, nonce: ArrayBuffer): Promise<string> {
-    const request = new Request(`/api/v1/archive/${this.archiveId}/file`, {
+    const request = new Request(`${DROP_API_ROOT}/api/v1/archive/${this.archiveId}/file`, {
       method: "POST",
       headers: new Headers({
         "Authorization": `Bearer ${this.token}`,
@@ -62,7 +64,7 @@ export default class FileUploader {
       this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
 
       const request = new XMLHttpRequest();
-      request.open("POST", `/api/v1/archive/${this.archiveId}/file/${id}`, true);
+      request.open("POST", `${DROP_API_ROOT}/api/v1/archive/${this.archiveId}/file/${id}`, true);
       request.setRequestHeader("Authorization", `Bearer ${this.token}`);
       request.setRequestHeader("Content-Type", "application/json");
       request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + chunk.byteLength}/${file.size}`);

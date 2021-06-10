@@ -5,3 +5,6 @@ declare module "*.svg" {
     React.SVGProps<SVGSVGElement> & { title?: string }
   >;
 }
+
+// The root address of the Drop API
+declare const DROP_API_ROOT: string;

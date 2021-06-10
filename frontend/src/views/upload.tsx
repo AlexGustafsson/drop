@@ -6,11 +6,19 @@ import DroppedFile from "../components/dropped-file";
 import {parseFragments, parseUploadClaims} from "../lib/token";
 import type {UploadClaims} from "../lib/token";
 import UndrawSecureLogin from "../assets/undraw-secure-login.svg";
+import FileUploader from "../lib/worker/file-uploader";
 
 import "./upload.css";
 
+type FileUpload = {
+  file: File,
+  internalFileId: string,
+  uploadProgress: number,
+  encryptionProgress: number,
+};
+
 type UploadViewState = {
-  files: File[]
+  files: FileUpload[],
 };
 
 export default class UploadView extends React.Component<{}, UploadViewState> {
@@ -21,6 +29,7 @@ export default class UploadView extends React.Component<{}, UploadViewState> {
   private token: string | null;
   private secret: string | null;
   private claims: UploadClaims | null;
+  private fileUploader: FileUploader | null;
 
   constructor(props: {}) {
     super(props);
@@ -29,23 +38,52 @@ export default class UploadView extends React.Component<{}, UploadViewState> {
     this.token = token;
     this.secret = secret;
     this.claims = token === null ? null : parseUploadClaims(token);
+    if (this.token && this.secret && this.claims) {
+      this.fileUploader = new FileUploader(this.token, this.claims.archiveId, this.secret);
+      this.fileUploader.addEventListener("upload", this.onUploadProgress.bind(this));
+      this.fileUploader.addEventListener("encrypt", this.onEncryptionProgress.bind(this));
+      this.fileUploader.addEventListener("done", this.onUploadDone.bind(this));
+    } else {
+      this.fileUploader = null;
+    }
 
     this.filesChanged = this.filesChanged.bind(this);
   }
 
-  filesChanged(files: File[]) {
-    this.setState({
-      files,
+  private onUploadProgress(file: File, progress: number) {
+
+  }
+
+  private onEncryptionProgress(file: File, progress: number) {
+
+  }
+
+  private onUploadDone(file: File) {
+    console.log("Done");
+  }
+
+  private filesChanged(files: File[]) {
+    this.setState((state: UploadViewState, props: {}) => {
+      for (let i = state.files.length; i < files.length; i++) {
+        state.files[i] = {file: files[i], internalFileId: i.toString(), uploadProgress: 0, encryptionProgress: 0};
+        this.fileUploader?.upload(files[i]);
+      }
+
+      return state;
     });
   }
 
   render() {
     if (this.claims) {
       const files = this.state.files.map(file => {
-        return <DroppedFile key="a" title="boo" uploadProgress={0.5} encryptionProgress={0.75} />
+        return <DroppedFile key={file.internalFileId} title={file.file.name} uploadProgress={file.uploadProgress} encryptionProgress={file.encryptionProgress} />
       });
 
-      return <main className="page upload-page authorized">
+      // Allow 3.5 dropped files to be shown (makes it easier to see that the
+      // content may be scrolled once it surpasses four files
+      const height = 400 + 70 * Math.min(this.state.files.length, 3.5);
+
+      return <main className="page upload-page authorized" style={{height: height}}>
         <h1>Upload your files</h1>
         <h2>Any files are supported, but large files may take longer to process</h2>
         <Dropper onChange={this.filesChanged} maximumFileCount={this.claims.maximumFileCount} maximumFileSize={this.claims.maximumFileSize} maximumSize={this.claims.maximumSize} />

@@ -48,14 +48,7 @@ export default class App extends React.Component {
 //     if (secret === null)
 //       secret = prompt("Secret");
 
-//     // Allow 3.5 dropped files to be shown (makes it easier to see that the
-//     // content may be scrolled once it surpasses four files
-//     main.style.height = `${400 + 70 * Math.min(dropper.files.length, 3.5)}px`;
-//     for (const file of files) {
-//       const droppedFile = new DroppedFile(file);
-//       fileList.appendChild(droppedFile.element);
-//       if (dropper.files.length > 3)
-//         fileScroller.scrollTo(0, fileScroller.scrollHeight);
+
 
 //       droppedFileList.push(droppedFile);
 //       filesList.push(file);
