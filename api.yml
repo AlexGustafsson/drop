@@ -2,7 +2,7 @@ openapi: 3.0.0
 
 info:
   title: Drop
-  description: A service for securely transferring files
+  description: A self-hosted, end-to-end encrypted personal file sharing service
   version: 0.1.0
 
 servers:
@@ -10,7 +10,15 @@ servers:
     description: Development server
 
 paths:
-  /archive:
+  /archives:
+    get:
+      summary: List all archives.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchiveResponse"
     post:
       summary: Create an archive.
       requestBody:
@@ -18,35 +26,18 @@ paths:
         content:
            application/json:
              schema:
-               type: object
-               properties:
-                 name:
-                   type: string
-                   description: Name of the archive.
-                 maximumFileCount:
-                   type: number
-                   description: The maximum number of files allowed to be uploaded. Use 0 to allow any count.
-                 maximumFileSize:
-                   type: number
-                   description: The maximum size of an uploaded file. Use 0 to allow any size.
-                 maximumSize:
-                   type: number
-                   description: The total maximum size of the uploaded files. use 0 to allow any size.
+               $ref: "#/components/schemas/ArchiveRequest"
       responses:
         "201":
           description: Created
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    description: The id of the created archive.
+                $ref: "#/components/schemas/ArchiveResponse"
 
-  /archive/{archiveId}/token:
+  /archives/{archiveId}/tokens:
     post:
-      summary: Create a token for the archive.
+      summary: Create a token for an archive.
       parameters:
         - in: path
           name: archiveId
@@ -59,28 +50,20 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                lifetime:
-                  type: number
-                  description: The number of seconds the token should be valid.
+              $ref: "#/components/schemas/TokenRequest"
       responses:
         "201":
           description: Created
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: Token with upload access to the archive.
+                $ref: "#/components/schemas/TokenResponse"
 
-  /archive/{archiveId}/file:
+  /archives/{archiveId}/files:
     post:
       summary: Create a file.
       security:
-        - BearerAuth: []
+        - ArchiveAuth: []
       parameters:
         - in: path
           name: archiveId
@@ -93,41 +76,21 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: Name of the file.
-                lastModified:
-                  type: number
-                  description: The UTC timestamp when the file was last modified.
-                size:
-                  type: number
-                  description: Size in bytes.
-                mime:
-                  type: string
-                  description: The MIME type of the file.
-                nonce:
-                  type: string
-                  description: Hex-encoded nonce used for encryption.
+              $ref: "#/components/schemas/FileRequest"
         responses:
           "201":
             description: Created
             content:
               application/json:
                 schema:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      description: "The created file's id, used for the upload"
+                  $ref: "#/components/schemas/FileResponse"
           "403":
             description: Forbidden
-  /archive/{archiveId}/file/{fileId}:
+  /archives/{archiveId}/files/{fileId}:
     post:
       summary: Upload bytes of a file.
       security:
-        - BearerAuth: []
+        - ArchiveAuth: []
       parameters:
         - in: path
           name: archiveId
@@ -141,6 +104,11 @@ paths:
             type: string
           required: true
           description: The id of the target file.
+        - in: header
+          name: Content-Range
+          type: string
+          required: false
+          description: The range of bytes to write. If not specified, the entire file is expected to be sent in the body. The body may be streamed over time.
       requestBody:
         required: true
         content:
@@ -150,7 +118,112 @@ paths:
               format: binary
 
 components:
+  schemas:
+    ArchiveRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the archive.
+        maximumFileCount:
+          type: number
+          description: The maximum number of files allowed to be uploaded. Use 0 to allow any count.
+        maximumFileSize:
+          type: number
+          description: The maximum size of an uploaded file. Use 0 to allow any size.
+        maximumSize:
+          type: number
+          description: The total maximum size of the uploaded files. use 0 to allow any size.
+
+    ArchiveResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          type: number
+          description: The UTC timestamp at which the archive was created.
+        name:
+          type: string
+          description: Name of the archive.
+        maximumFileCount:
+          type: number
+          description: The maximum number of files allowed to be uploaded. Use 0 to allow any count.
+        maximumFileSize:
+          type: number
+          description: The maximum size of an uploaded file. Use 0 to allow any size.
+        maximumSize:
+          type: number
+          description: The total maximum size of the uploaded files. use 0 to allow any size.
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileResponse"
+
+    TokenRequest:
+      type: object
+      properties:
+        lifetime:
+          type: number
+          description: The number of seconds the token should be valid.
+
+    TokenResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          type: number
+          description: The UTC timestamp at which the token was created.
+        token:
+          type: string
+          description: Token with upload access to the archive.
+
+    FileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the file.
+        lastModified:
+          type: number
+          description: The UTC timestamp when the file was last modified.
+        size:
+          type: number
+          description: Size in bytes.
+        mime:
+          type: string
+          description: The MIME type of the file.
+        nonce:
+          type: string
+          description: Hex-encoded nonce used for encryption.
+
+    FileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "The created file's id, used for the upload"
+        created:
+          type: number
+          description: The UTC timestamp at which the file was created.
+        name:
+          type: string
+          description: Name of the file.
+        lastModified:
+          type: number
+          description: The UTC timestamp when the file was last modified.
+        size:
+          type: number
+          description: Size in bytes.
+        mime:
+          type: string
+          description: The MIME type of the file.
+        nonce:
+          type: string
+          description: Hex-encoded nonce used for encryption.
+
   securitySchemes:
-    BearerAuth:
+    ArchiveAuth:
       type: http
       scheme: bearer
