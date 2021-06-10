@@ -12,8 +12,19 @@ html, body {
 }
 
 body {
+  min-height: 100vh;
+  font-family: system, -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.page.centered {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: system, -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
 }

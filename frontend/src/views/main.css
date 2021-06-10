@@ -1,0 +1,72 @@
+.main-page .fab {
+  position: fixed;
+  bottom: 45px;
+  right: 45px;
+}
+
+.main-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.main-page img {
+  width: 320px;
+}
+
+.main-page .modal main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 15px;
+  max-width: 95%;
+  padding: 30px 25px;
+  box-sizing: border-box;
+}
+
+.main-page .grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  row-gap: 10px;
+  column-gap: 10px;
+}
+
+.main-page article {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 15px;
+  max-width: 95%;
+  padding: 10px 5px;
+  box-sizing: border-box;
+}
+
+.main-page article ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.main-page article li {
+  padding: 5px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+}
+
+.main-page article li svg {
+  color: #498CF9;
+  width: 32px;
+  height: 32px;
+}
+
+.main-page .error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

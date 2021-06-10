@@ -83,7 +83,7 @@ export default class UploadView extends React.Component<{}, UploadViewState> {
       // content may be scrolled once it surpasses four files
       const height = 400 + 70 * Math.min(this.state.files.length, 3.5);
 
-      return <main className="page upload-page authorized" style={{height: height}}>
+      return <main className="page upload-page centered authorized" style={{height: height}}>
         <h1>Upload your files</h1>
         <h2>Any files are supported, but large files may take longer to process</h2>
         <Dropper onChange={this.filesChanged} maximumFileCount={this.claims.maximumFileCount} maximumFileSize={this.claims.maximumFileSize} maximumSize={this.claims.maximumSize} />
@@ -94,9 +94,10 @@ export default class UploadView extends React.Component<{}, UploadViewState> {
         </div>
       </main>
     } else {
-      return <main className="page upload-page unauthorized">
+      return <main className="page upload-page centered unauthorized">
         <img src={UndrawSecureLogin} />
         <h1>Unauthorized</h1>
+        <h2>Make sure you clicked on the provided link</h2>
         <Link to="/"><button className="primary">Take me home</button></Link>
       </main>
     }

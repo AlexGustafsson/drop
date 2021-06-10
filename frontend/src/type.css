@@ -18,11 +18,18 @@ h2 {
 }
 
 h2, h3 {
-  color: #BFBFBF;
+  color: #696969;
 }
 
 p {
   color: #2B2B2B;
+}
+
+p.bubble {
+  background-color: #BFBFBF;
+  color: black;
+  border-radius: 15px;
+  padding: 2px 5px;
 }
 
 a {
@@ -35,7 +42,7 @@ button {
   padding: 0;
   padding: 10px 10px;
   border-radius: 5px;
-  margin: 2px 0;
+  margin: 5px 0;
   cursor: pointer;
   transition: 0.1s linear box-shadow;
 }
@@ -51,4 +58,13 @@ button:active {
 button.primary {
   background-color: #498CF9;
   color: white;
+}
+
+input[type="text"], input[type="number"] {
+  outline: none;
+  border: none;
+  padding: 5px;
+  background: none;
+  border-bottom: 1px solid black;
+  margin: 5px 0;
 }
