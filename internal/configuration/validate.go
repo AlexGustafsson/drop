@@ -18,7 +18,7 @@ func Validate(config *Configuration) []error {
 		}
 	}
 
-	if config.Store.Adapter != "memory" && config.Store.Adapter != "sqlite" {
+	if config.Store.Adapter != "sqlite" {
 		errors = append(errors, fmt.Errorf("Unsupported store adapter '%s'", config.Store.Adapter))
 	}
 

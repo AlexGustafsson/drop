@@ -13,6 +13,7 @@ type SqliteArchive struct {
 	maximumFileCount int
 	maximumFileSize  int
 	maximumSize      int
+	created          int
 }
 
 func (archive *SqliteArchive) Id() string {
@@ -35,21 +36,25 @@ func (archive *SqliteArchive) MaximumSize() int {
 	return archive.maximumSize
 }
 
+func (archive *SqliteArchive) Created() int {
+	return archive.created
+}
+
 func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	statement, err := archive.store.db.Prepare(`
 		SELECT
-		id, name, lastModified, size, mime, nonce
+		id, name, lastModified, size, mime, nonce, created
 		FROM files
 		WHERE files.archiveId = ? AND files.id = ?
 	`)
 	if err != nil {
-		return nil, false, nil
+		return nil, false, err
 	}
 	defer statement.Close()
 
 	rows, err := statement.Query(archive.id, id)
 	if err != nil {
-		return nil, false, nil
+		return nil, false, err
 	}
 	defer rows.Close()
 
@@ -58,50 +63,116 @@ func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	}
 
 	var file SqliteFile
-	err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime, &file.nonce)
+	err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime, &file.nonce, &file.created)
 	if err != nil {
-		return nil, false, nil
+		return nil, false, err
 	}
 
 	return &file, true, nil
 }
 
-func (archive *SqliteArchive) HasToken(id string) (bool, error) {
+func (archive *SqliteArchive) Files() ([]state.File, error) {
 	statement, err := archive.store.db.Prepare(`
-		SELECT EXISTS(SELECT 1 FROM tokens WHERE tokens.id = ?)
+		SELECT
+		id, name, lastModified, size, mime, nonce, created
+		FROM files
+		WHERE files.archiveId = ?
 	`)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	defer statement.Close()
 
-	rows, err := statement.Query(id)
+	rows, err := statement.Query(archive.id)
 	if err != nil {
-		return false, err
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := make([]state.File, 0)
+	for rows.Next() {
+		var file SqliteFile
+		err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime, &file.nonce, &file.created)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, &file)
+	}
+
+	return files, nil
+}
+
+func (archive *SqliteArchive) Token(id string) (state.ArchiveToken, bool, error) {
+	statement, err := archive.store.db.Prepare(`
+		SELECT
+		id, created
+		FROM archive_tokens
+		WHERE archive_tokens.archiveId = ? AND archive_tokens.id = ?
+	`)
+	if err != nil {
+		return nil, false, err
+	}
+	defer statement.Close()
+
+	rows, err := statement.Query(archive.id, id)
+	if err != nil {
+		return nil, false, err
 	}
 	defer rows.Close()
 
 	if !rows.Next() {
-		return false, nil
+		return nil, false, nil
 	}
 
-	var exists bool
-	err = rows.Scan(&exists)
+	var token SqliteArchiveToken
+	err = rows.Scan(&token.id, &token.created)
 	if err != nil {
-		return false, err
+		return nil, false, err
 	}
 
-	return exists, nil
+	return &token, true, nil
+}
+
+func (archive *SqliteArchive) Tokens() ([]state.ArchiveToken, error) {
+	statement, err := archive.store.db.Prepare(`
+		SELECT
+		id, created
+		FROM archive_tokens
+		WHERE archive_tokens.archiveId = ?
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	rows, err := statement.Query(archive.id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	tokens := make([]state.ArchiveToken, 0)
+	for rows.Next() {
+		var token SqliteArchiveToken
+		err = rows.Scan(&token.id, &token.created)
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, &token)
+	}
+
+	return tokens, nil
 }
 
 func (archive *SqliteArchive) CreateToken(lifetime int) (string, error) {
-	token, id, err := authentication.CreateToken(archive.store.secret, archive.id, archive.name, lifetime, archive.maximumFileCount, archive.maximumFileSize, archive.maximumSize)
+	token, id, err := authentication.CreateArchiveToken(archive.store.secret, archive.id, archive.name, lifetime, archive.maximumFileCount, archive.maximumFileSize, archive.maximumSize)
 	if err != nil {
 		return "", nil
 	}
 
 	statement, err := archive.store.db.Prepare(`
-		INSERT INTO tokens
+		INSERT INTO archive_tokens
 		(id, archiveId)
 		VALUES
 		(?, ?)

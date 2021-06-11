@@ -8,7 +8,6 @@ import (
 	"github.com/AlexGustafsson/drop/internal/data/local"
 	"github.com/AlexGustafsson/drop/internal/server"
 	"github.com/AlexGustafsson/drop/internal/state"
-	"github.com/AlexGustafsson/drop/internal/state/memory"
 	"github.com/AlexGustafsson/drop/internal/state/sqlite"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -40,9 +39,7 @@ func serveCommand(context *cli.Context) error {
 	}
 
 	var stateStore state.Store
-	if config.Store.Adapter == "memory" {
-		stateStore = memory.New(secret)
-	} else if config.Store.Adapter == "sqlite" {
+	if config.Store.Adapter == "sqlite" {
 		sqliteStore := sqlite.New(secret)
 		err = sqliteStore.Connect(config.Store.ConnectionString)
 		if err != nil {

@@ -7,6 +7,7 @@ type SqliteFile struct {
 	size         int
 	mime         string
 	nonce        string
+	created      int
 }
 
 func (file *SqliteFile) Id() string {
@@ -31,4 +32,8 @@ func (file *SqliteFile) Mime() string {
 
 func (file *SqliteFile) Nonce() string {
 	return file.nonce
+}
+
+func (file *SqliteFile) Created() int {
+	return file.created
 }
