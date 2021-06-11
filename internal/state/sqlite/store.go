@@ -3,7 +3,7 @@ package sqlite
 import (
 	"database/sql"
 
-	"github.com/AlexGustafsson/drop/internal/authentication"
+	"github.com/AlexGustafsson/drop/internal/auth"
 	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
@@ -145,7 +145,7 @@ func (store *SqliteStore) Archives() ([]state.Archive, error) {
 }
 
 func (store *SqliteStore) CreateAdminToken(lifetime int) (string, error) {
-	token, id, err := authentication.CreateAdminToken(store.secret, lifetime)
+	token, id, err := auth.CreateAdminToken(store.secret, lifetime)
 	if err != nil {
 		return "", nil
 	}

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AlexGustafsson/drop/internal/authentication"
+	"github.com/AlexGustafsson/drop/internal/auth"
 	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Context struct {
-	adminTokenClaims   *authentication.AdminTokenClaims
-	archiveTokenClaims *authentication.ArchiveTokenClaims
+	adminTokenClaims   *auth.AdminTokenClaims
+	archiveTokenClaims *auth.ArchiveTokenClaims
 	stateStore         state.Store
 	*fiber.Ctx
 }
@@ -26,7 +26,7 @@ func NewContext(ctx *fiber.Ctx, stateStore state.Store) *Context {
 }
 
 func (context *Context) parseAdminToken(bearerToken string) error {
-	claims, err := authentication.ValidateAdminToken(context.stateStore.Secret(), bearerToken)
+	claims, err := auth.ValidateAdminToken(context.stateStore.Secret(), bearerToken)
 	if err != nil {
 		context.Status(fiber.StatusForbidden).SendString(ForbiddenError)
 		return err
@@ -48,7 +48,7 @@ func (context *Context) parseAdminToken(bearerToken string) error {
 }
 
 func (context *Context) parseArchiveToken(bearerToken string) error {
-	claims, err := authentication.ValidateArchiveToken(context.stateStore.Secret(), bearerToken)
+	claims, err := auth.ValidateArchiveToken(context.stateStore.Secret(), bearerToken)
 	if err != nil {
 		context.Status(fiber.StatusForbidden).SendString(ForbiddenError)
 		return err
@@ -97,10 +97,10 @@ func (context *Context) Parse() error {
 	return nil
 }
 
-func (context *Context) AdminClaims() (bool, *authentication.AdminTokenClaims) {
+func (context *Context) AdminClaims() (bool, *auth.AdminTokenClaims) {
 	return context.adminTokenClaims != nil, context.adminTokenClaims
 }
 
-func (context *Context) ArchiveClaims() (bool, *authentication.ArchiveTokenClaims) {
+func (context *Context) ArchiveClaims() (bool, *auth.ArchiveTokenClaims) {
 	return context.archiveTokenClaims != nil, context.archiveTokenClaims
 }

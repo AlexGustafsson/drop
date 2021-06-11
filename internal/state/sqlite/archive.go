@@ -1,7 +1,7 @@
 package sqlite
 
 import (
-	"github.com/AlexGustafsson/drop/internal/authentication"
+	"github.com/AlexGustafsson/drop/internal/auth"
 	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/google/uuid"
 )
@@ -166,7 +166,7 @@ func (archive *SqliteArchive) Tokens() ([]state.ArchiveToken, error) {
 }
 
 func (archive *SqliteArchive) CreateToken(lifetime int) (string, error) {
-	token, id, err := authentication.CreateArchiveToken(archive.store.secret, archive.id, archive.name, lifetime, archive.maximumFileCount, archive.maximumFileSize, archive.maximumSize)
+	token, id, err := auth.CreateArchiveToken(archive.store.secret, archive.id, archive.name, lifetime, archive.maximumFileCount, archive.maximumFileSize, archive.maximumSize)
 	if err != nil {
 		return "", nil
 	}

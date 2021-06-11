@@ -1,4 +1,4 @@
-package authentication
+package auth
 
 import (
 	"fmt"
@@ -8,32 +8,22 @@ import (
 	"github.com/google/uuid"
 )
 
-type ArchiveTokenClaims struct {
-	ArchiveId        string `json:"ari"`
-	ArchiveName      string `json:"arn"`
-	MaximumFileCount int    `json:"mfc"`
-	MaximumFileSize  int    `json:"mfs"`
-	MaximumSize      int    `json:"ms"`
+type AdminTokenClaims struct {
 	jwt.StandardClaims
 }
 
-func CreateArchiveToken(secret []byte, archiveId string, name string, lifetime int, maximumFileCount int, maximumFileSize int, maximumSize int) (string, string, error) {
+func CreateAdminToken(secret []byte, lifetime int) (string, string, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return "", "", fmt.Errorf("Failed to generate token id: %s", err.Error())
 	}
 
-	claims := ArchiveTokenClaims{
-		archiveId,
-		name,
-		maximumFileCount,
-		maximumFileSize,
-		maximumSize,
+	claims := AdminTokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Unix() + int64(lifetime),
 			Id:        id.String(),
 			Issuer:    "drop",
-			Subject:   "archive",
+			Subject:   "admin",
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -45,8 +35,8 @@ func CreateArchiveToken(secret []byte, archiveId string, name string, lifetime i
 	return signedToken, id.String(), nil
 }
 
-func ValidateArchiveToken(secret []byte, bearerToken string) (*ArchiveTokenClaims, error) {
-	claims := &ArchiveTokenClaims{}
+func ValidateAdminToken(secret []byte, bearerToken string) (*AdminTokenClaims, error) {
+	claims := &AdminTokenClaims{}
 	token, err := jwt.ParseWithClaims(bearerToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return secret, nil
 	})
@@ -58,8 +48,8 @@ func ValidateArchiveToken(secret []byte, bearerToken string) (*ArchiveTokenClaim
 		return nil, fmt.Errorf("Signing method must be HS256, was '%s'", token.Method.Alg())
 	}
 
-	if claims.Subject != "archive" {
-		return nil, fmt.Errorf("Token subject must be 'archive', was '%s'", claims.Subject)
+	if claims.Subject != "admin" {
+		return nil, fmt.Errorf("Token subject must be 'admin', was '%s'", claims.Subject)
 	}
 
 	return claims, nil

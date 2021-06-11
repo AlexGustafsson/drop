@@ -1,4 +1,4 @@
-package authentication
+package auth
 
 const (
 	TokenCreationFailedError = "Token creation failed"
