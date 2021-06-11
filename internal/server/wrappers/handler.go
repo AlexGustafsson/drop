@@ -6,8 +6,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func NewHandle(stateStore state.Store) func(handler func(ctx *Context)) func(ctx *fiber.Ctx) error {
-	return func(handler func(ctx *Context)) func(ctx *fiber.Ctx) error {
+func NewHandle(stateStore state.Store) func(handler func(ctx *Context) error) func(ctx *fiber.Ctx) error {
+	return func(handler func(ctx *Context) error) func(ctx *fiber.Ctx) error {
 		return func(ctx *fiber.Ctx) error {
 			context := NewContext(ctx, stateStore)
 
@@ -18,7 +18,10 @@ func NewHandle(stateStore state.Store) func(handler func(ctx *Context)) func(ctx
 			}
 
 			logBefore(context)
-			handler(context)
+			err = handler(context)
+			if err != nil {
+				log.Error("Handler failed: ", err.Error())
+			}
 			logAfter(context)
 			return nil
 		}

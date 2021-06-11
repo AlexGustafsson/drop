@@ -4,41 +4,45 @@ package state
 type File interface {
 	Id() string
 	Name() string
-	LastModified() int
+	LastModified() int64
 	Size() int
 	Mime() string
 	Nonce() string
-	Created() int
+	Created() int64
 }
 
 // AdminToken is an admin token
 type AdminToken interface {
 	Id() string
-	Created() int
+	IssuedAt() int64
+	ExpiresAt() int64
 }
 
 // ArchiveToken is a token for an archive
 type ArchiveToken interface {
 	Id() string
-	Created() int
+	IssuedAt() int64
+	ExpiresAt() int64
 }
 
 // Archive is an archive of files
 type Archive interface {
 	Id() string
 	Name() string
-	Created() int
+	Created() int64
 	MaximumFileCount() int
 	MaximumFileSize() int
 	MaximumSize() int
 	File(id string) (File, bool, error)
 	Files() ([]File, error)
 	Token(id string) (ArchiveToken, bool, error)
+	DeleteToken(id string) (bool, error)
 	Tokens() ([]ArchiveToken, error)
 	// CreateToken creates a token for an archive
-	CreateToken(lifetime int) (string, error)
+	CreateToken(lifetime int) (ArchiveToken, string, error)
 	// CreateFile creates a file in an archive
-	CreateFile(name string, lastModified int, size int, mime string, nonce string) (File, error)
+	CreateFile(name string, lastModified int64, size int, mime string, nonce string) (File, error)
+	DeleteFile(id string) (bool, error)
 }
 
 // Store represents a central state store
@@ -48,10 +52,12 @@ type Store interface {
 	// CreateArchive creates an archive
 	CreateArchive(name string, maximumFileCount int, maximumFileSize int, maximumSize int) (Archive, error)
 	// Archive returns an archive by id
-	Archive(archiveId string) (Archive, bool, error)
+	Archive(id string) (Archive, bool, error)
 	Archives() ([]Archive, error)
+	DeleteArchive(id string) (bool, error)
 	// CreateAdminToken creates an admin token
-	CreateAdminToken(lifetime int) (string, error)
+	CreateAdminToken(lifetime int) (AdminToken, string, error)
 	AdminToken(id string) (AdminToken, bool, error)
 	AdminTokens() ([]AdminToken, error)
+	DeleteAdminToken(id string) (bool, error)
 }

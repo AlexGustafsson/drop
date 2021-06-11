@@ -144,35 +144,41 @@ func (store *SqliteStore) Archives() ([]state.Archive, error) {
 	return archives, nil
 }
 
-func (store *SqliteStore) CreateAdminToken(lifetime int) (string, error) {
-	token, id, err := auth.CreateAdminToken(store.secret, lifetime)
+func (store *SqliteStore) CreateAdminToken(lifetime int) (state.AdminToken, string, error) {
+	tokenString, claims, err := auth.CreateAdminToken(store.secret, lifetime)
 	if err != nil {
-		return "", nil
+		return nil, "", nil
 	}
 
 	statement, err := store.db.Prepare(`
 		INSERT INTO admin_tokens
-		(id)
+		(id, expires, created)
 		VALUES
-		(?)
+		(?, ?, ?)
 	`)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	defer statement.Close()
 
-	_, err = statement.Exec(id)
+	_, err = statement.Exec(claims.Id, claims.ExpiresAt, claims.IssuedAt)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
-	return token, nil
+	token := &SqliteAdminToken{
+		id:      claims.Id,
+		expires: claims.ExpiresAt,
+		created: claims.IssuedAt,
+	}
+
+	return token, tokenString, nil
 }
 
 func (store *SqliteStore) AdminToken(id string) (state.AdminToken, bool, error) {
 	statement, err := store.db.Prepare(`
 		SELECT
-		id, created
+		id, expires, created
 		FROM admin_tokens
 		WHERE AND admin_tokens.id = ?
 	`)
@@ -192,7 +198,7 @@ func (store *SqliteStore) AdminToken(id string) (state.AdminToken, bool, error) 
 	}
 
 	var token SqliteAdminToken
-	err = rows.Scan(&token.id, &token.created)
+	err = rows.Scan(&token.id, &token.expires, &token.created)
 	if err != nil {
 		return nil, false, err
 	}
@@ -228,4 +234,52 @@ func (store *SqliteStore) AdminTokens() ([]state.AdminToken, error) {
 	}
 
 	return tokens, nil
+}
+
+func (store *SqliteStore) DeleteAdminToken(id string) (bool, error) {
+	statement, err := store.db.Prepare(`
+		DELETE
+		FROM admin_tokens
+		WHERE admin_tokens.id = ?
+	`)
+	if err != nil {
+		return false, err
+	}
+	defer statement.Close()
+
+	result, err := statement.Exec(id)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rows > 0, nil
+}
+
+func (store *SqliteStore) DeleteArchive(id string) (bool, error) {
+	statement, err := store.db.Prepare(`
+		DELETE
+		FROM archive
+		WHERE archive.id = ?
+	`)
+	if err != nil {
+		return false, err
+	}
+	defer statement.Close()
+
+	result, err := statement.Exec(id)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rows > 0, nil
 }

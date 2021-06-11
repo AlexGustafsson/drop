@@ -3,43 +3,68 @@ package server
 import (
 	"github.com/AlexGustafsson/drop/internal/server/wrappers"
 	"github.com/gofiber/fiber/v2"
-	log "github.com/sirupsen/logrus"
 )
 
-// CreateArchiveRequest is the request for the create archive API.
-type CreateArchiveRequest struct {
+type ArchiveResponse struct {
+	Id               string `json:"id"`
+	Created          int64  `json:"created"`
 	Name             string `json:"name"`
 	MaximumFileCount int    `json:"maximumFileCount"`
 	MaximumFileSize  int    `json:"maximumFileSize"`
 	MaximumSize      int    `json:"maximumSize"`
 }
 
-// CreateArchiveResponse is the response for the create archive API.
-type CreateArchiveResponse struct {
-	Id string `json:"id"`
+type ArchiveListResponse struct {
+	Archives []ArchiveResponse `json:"archives"`
 }
 
-// CreateArchiveTokenRequest is the request for the create archive token API.
-type CreateArchiveTokenRequest struct {
-	Lifetime int `json:"lifetime"`
+type ArchiveCreateRequest struct {
+	Name             string `json:"name"`
+	MaximumFileCount int    `json:"maximumFileCount"`
+	MaximumFileSize  int    `json:"maximumFileSize"`
+	MaximumSize      int    `json:"maximumSize"`
 }
 
-// CreateArchiveTokenResponse is the response for the create archive token API.
-type CreateArchiveTokenResponse struct {
-	Token string `json:"token"`
-}
-
-func (server *Server) handleArchiveCreation(ctx *wrappers.Context) {
-	if isAdmin, _ := ctx.AdminClaims(); !isAdmin {
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
+func (server *Server) handleArchiveList(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireAdminAuth(); !ok {
+		return nil
 	}
 
-	var request CreateArchiveRequest
+	archives, err := server.stateStore.Archives()
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return err
+	}
+
+	response := ArchiveListResponse{}
+	for _, archive := range archives {
+		response.Archives = append(response.Archives, ArchiveResponse{
+			Id:               archive.Id(),
+			Name:             archive.Name(),
+			MaximumFileCount: archive.MaximumFileCount(),
+			MaximumFileSize:  archive.MaximumFileSize(),
+			MaximumSize:      archive.MaximumSize(),
+		})
+	}
+
+	err = ctx.JSON(response)
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return err
+	}
+
+	return nil
+}
+
+func (server *Server) handleArchiveCreate(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireAdminAuth(); !ok {
+		return nil
+	}
+
+	var request ArchiveCreateRequest
 	if err := ctx.BodyParser(&request); err != nil {
-		log.Error("Failed to parse request body", err.Error())
 		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-		return
+		return err
 	}
 
 	archive, err := server.stateStore.CreateArchive(
@@ -49,74 +74,71 @@ func (server *Server) handleArchiveCreation(ctx *wrappers.Context) {
 		request.MaximumSize,
 	)
 	if err != nil {
-		log.Error("Failed to create archive", err.Error())
-		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
+		return err
 	}
 
-	var response CreateArchiveResponse
-	response.Id = archive.Id()
+	response := ArchiveResponse{
+		Id:               archive.Id(),
+		Created:          archive.Created(),
+		Name:             archive.Name(),
+		MaximumFileCount: archive.MaximumFileCount(),
+		MaximumFileSize:  archive.MaximumFileSize(),
+		MaximumSize:      archive.MaximumSize(),
+	}
 
 	err = ctx.JSON(response)
 	if err != nil {
-		log.Error("Failed to encode create archive response", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return err
 	}
 
 	ctx.Status(fiber.StatusCreated)
-	return
+	return nil
 }
 
-func (server *Server) handleArchiveTokenCreation(ctx *wrappers.Context) {
-	if isAdmin, _ := ctx.AdminClaims(); !isAdmin {
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
+func (server *Server) handleArchiveGet(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireAdminAuth(); !ok {
+		return nil
 	}
 
-	var request CreateArchiveTokenRequest
-	if err := ctx.BodyParser(&request); err != nil {
-		log.Error("Failed to parse request body", err.Error())
-		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-		return
+	archive, ok := ctx.RequestedArchive()
+	if !ok {
+		return nil
+	}
+
+	response := ArchiveResponse{
+		Id:               archive.Id(),
+		Name:             archive.Name(),
+		MaximumFileCount: archive.MaximumFileCount(),
+		MaximumFileSize:  archive.MaximumFileSize(),
+		MaximumSize:      archive.MaximumSize(),
+	}
+
+	err := ctx.JSON(response)
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return err
+	}
+
+	return nil
+}
+
+func (server *Server) handleArchiveDelete(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireAdminAuth(); !ok {
+		return nil
 	}
 
 	archiveId := ctx.Params("archiveId")
-	archive, archiveExists, err := server.stateStore.Archive(archiveId)
+	archiveExisted, err := server.stateStore.DeleteArchive(archiveId)
 	if err != nil {
-		log.Error("Unable to get archive", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return err
 	}
-	if !archiveExists {
+	if !archiveExisted {
 		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return
+		return nil
 	}
 
-	token, err := archive.CreateToken(request.Lifetime)
-	if err != nil {
-		log.Error("Failed to create token", err.Error())
-		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
-	}
-
-	var response CreateArchiveTokenResponse
-	response.Token = token
-
-	err = ctx.JSON(response)
-	if err != nil {
-		log.Error("Failed to encode create archive token response", err.Error())
-		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
-	}
-
-	ctx.Status(fiber.StatusCreated)
-	return
-}
-
-func (server *Server) handleArchiveRetrieval(ctx *wrappers.Context) {
-	if isAdmin, _ := ctx.AdminClaims(); !isAdmin {
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
-	}
+	return nil
 }

@@ -44,7 +44,7 @@ func tokenCommand(context *cli.Context) error {
 		stateStore = sqliteStore
 	}
 
-	token, err := stateStore.CreateAdminToken(int(lifetime))
+	_, token, err := stateStore.CreateAdminToken(int(lifetime))
 	if err != nil {
 		return err
 	}

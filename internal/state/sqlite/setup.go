@@ -50,6 +50,7 @@ func (store *SqliteStore) setup() error {
 			id string PRIMARY KEY,
 			archiveId string NOT NULL,
 			created integer NOT NULL,
+			expires integer NOT NULL,
 			FOREIGN KEY (archiveId) REFERENCES archives (id)
 		)
 	`)
@@ -62,7 +63,8 @@ func (store *SqliteStore) setup() error {
 	_, err = store.db.Exec(`
 		CREATE TABLE IF NOT EXISTS admin_tokens (
 			id string PRIMARY KEY,
-			created integer NOT NULL
+			created integer NOT NULL,
+			expires integer NOT NULL
 		)
 	`)
 	if err != nil {

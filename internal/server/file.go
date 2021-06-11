@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/AlexGustafsson/drop/internal/server/wrappers"
@@ -8,166 +9,184 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// CreateFileRequest is the request for the create file API.
-type CreateFileRequest struct {
+type FileResponse struct {
+	Id           string `json:"id"`
+	Created      int64  `json:"created"`
 	Name         string `json:"name"`
-	LastModified int    `json:"lastModified"`
+	LastModified int64  `json:"lastModified"`
 	Size         int    `json:"size"`
 	Mime         string `json:"mime"`
 	Nonce        string `json:"nonce"`
 }
 
-// CreateFileResponse is the response for the create file API.
-type CreateFileResponse struct {
-	Id string `json:"id"`
+type FileListResponse struct {
+	Files []FileResponse `json:"files"`
 }
 
-func (server *Server) handleFileCreation(ctx *wrappers.Context) {
-	isArchive, claims := ctx.ArchiveClaims()
-	if !isArchive {
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
+type FileCreateRequest struct {
+	Name         string `json:"name"`
+	LastModified int64  `json:"lastModified"`
+	Size         int    `json:"size"`
+	Mime         string `json:"mime"`
+	Nonce        string `json:"nonce"`
+}
+
+func (server *Server) handleFileList(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireAdminAuth(); !ok {
+		return nil
 	}
 
-	archiveId := ctx.Params("archiveId")
-	if claims.ArchiveId != archiveId {
-		log.WithFields(log.Fields{
-			"archiveId": archiveId,
-			"tokenId":   claims.ArchiveId,
-		}).Error("Attempt at targeting a non-permitted archive")
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
+	archive, ok := ctx.RequestedArchive()
+	if !ok {
+		return nil
 	}
 
-	var request CreateFileRequest
-	if err := ctx.BodyParser(&request); err != nil {
-		log.Error("Failed to parse request body", err.Error())
-		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-		return
-	}
-
-	archive, archiveExists, err := server.stateStore.Archive(archiveId)
+	files, err := archive.Files()
 	if err != nil {
-		log.Error("Unable to get archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return err
 	}
 
-	if !archiveExists {
-		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return
-	}
-
-	_, hasToken, err := archive.Token(claims.Id)
-	if err != nil {
-		log.Error("Unable to check if token exists for archive: ", err.Error())
-		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
-	}
-
-	if !hasToken {
-		log.WithFields(log.Fields{
-			"tokenId": claims.Id,
-		}).Error("Attempt at using bad or revoked token")
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
-	}
-
-	file, err := archive.CreateFile(request.Name, request.LastModified, request.Size, request.Mime, request.Nonce)
-	if err != nil {
-		log.Error("Unable to create file: ", err.Error())
-		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
-	}
-
-	err = server.dataStore.Touch(archiveId, file.Id(), uint64(file.Size()))
-	if err != nil {
-		log.Error("Unable to touch file: ", err.Error())
-		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
-	}
-
-	// TODO: Retain context of created files during the session
-	// TODO: Validate that it does not surpass valid size
-
-	log.Infof("Creating file '%s' (%s) of %d bytes", request.Name, request.Mime, request.Size)
-	response := CreateFileResponse{
-		Id: file.Id(),
+	response := FileListResponse{}
+	for _, file := range files {
+		response.Files = append(response.Files, FileResponse{
+			Id:           file.Id(),
+			Created:      file.Created(),
+			Name:         file.Name(),
+			LastModified: file.LastModified(),
+			Size:         file.Size(),
+			Mime:         file.Mime(),
+			Nonce:        file.Nonce(),
+		})
 	}
 
 	err = ctx.JSON(response)
 	if err != nil {
-		log.Error("Failed to encode create file response", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return err
 	}
 
-	ctx.Status(fiber.StatusCreated)
-	return
+	return nil
 }
 
-func (server *Server) handleFileUpload(ctx *wrappers.Context) {
-	isArchive, claims := ctx.ArchiveClaims()
-	if !isArchive {
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
+func (server *Server) handleFileCreate(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireArchiveAuth(); !ok {
+		return nil
 	}
 
-	archiveId := ctx.Params("archiveId")
-	if claims.ArchiveId != archiveId {
-		log.WithFields(log.Fields{
-			"archiveId": archiveId,
-			"tokenId":   claims.ArchiveId,
-		}).Error("Attempt at targeting a non-permitted archive")
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
+	var request FileCreateRequest
+	if err := ctx.BodyParser(&request); err != nil {
+		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
+		return err
 	}
 
-	archive, archiveExists, err := server.stateStore.Archive(archiveId)
+	archive, ok := ctx.RequestedArchive()
+	if !ok {
+		return nil
+	}
+
+	file, err := archive.CreateFile(
+		request.Name,
+		request.LastModified,
+		request.Size,
+		request.Mime,
+		request.Nonce,
+	)
 	if err != nil {
-		log.Error("Unable to get archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return err
 	}
 
-	if !archiveExists {
+	response := FileResponse{
+		Id:           file.Id(),
+		Created:      file.Created(),
+		Name:         file.Name(),
+		LastModified: file.LastModified(),
+		Size:         file.Size(),
+		Mime:         file.Mime(),
+		Nonce:        file.Nonce(),
+	}
+
+	err = ctx.JSON(response)
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return err
+	}
+
+	return nil
+}
+
+func (server *Server) handleFileGet(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireAdminAuth(); !ok {
+		return nil
+	}
+
+	archive, ok := ctx.RequestedArchive()
+	if !ok {
+		return nil
+	}
+
+	fileId := ctx.Get("fileId")
+	file, fileExists, err := archive.File(fileId)
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return err
+	}
+	if !fileExists {
 		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return
+		return nil
 	}
 
-	_, hasToken, err := archive.Token(claims.Id)
+	response := FileResponse{
+		Id:           file.Id(),
+		Created:      file.Created(),
+		Name:         file.Name(),
+		LastModified: file.LastModified(),
+		Size:         file.Size(),
+		Mime:         file.Mime(),
+		Nonce:        file.Nonce(),
+	}
+
+	err = ctx.JSON(response)
 	if err != nil {
-		log.Error("Unable to check if token exists for archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return err
 	}
 
-	if !hasToken {
-		log.WithFields(log.Fields{
-			"tokenId": claims.Id,
-		}).Error("Attempt at using bad or revoked token")
-		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return
+	return nil
+}
+
+func (server *Server) handleFileDownload(ctx *wrappers.Context) error {
+	ctx.SendStatus(fiber.StatusNotImplemented)
+	return nil
+}
+
+func (server *Server) handleFileUpload(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireArchiveAuth(); !ok {
+		return nil
+	}
+
+	archive, ok := ctx.RequestedArchive()
+	if !ok {
+		return nil
 	}
 
 	fileId := ctx.Params("fileId")
 	file, fileExists, err := archive.File(fileId)
 	if err != nil {
-		log.Error("Unable to get file: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return err
 	}
 
 	if !fileExists {
 		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return
+		return nil
 	}
 
-	fileExists, err = server.dataStore.Exists(archiveId, fileId)
+	fileExists, err = server.dataStore.Exists(archive.Id(), fileId)
 	if !fileExists {
-		log.Errorf("File is tracked in state but does not exist in the store: %s/%s", archiveId, fileId)
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return
+		return fmt.Errorf("File is tracked in state but does not exist in the store: %s/%s", archive.Id(), fileId)
 	}
 
 	contentRangeHeader := ctx.Get("Content-Range")
@@ -179,21 +198,20 @@ func (server *Server) handleFileUpload(ctx *wrappers.Context) {
 		var rangeSize uint64
 		rangeUnit, rangeStart, rangeEnd, rangeSize, err = parseContentRange(contentRangeHeader)
 		if err != nil {
-			log.Errorf("Unable to parse Content-Range header: ", err.Error())
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-			return
+			return err
 		}
 
 		// Only bytes are supported
 		if rangeUnit != "bytes" {
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-			return
+			return nil
 		}
 
 		// Incoherent sizes
 		if rangeSize != uint64(file.Size()) {
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-			return
+			return nil
 		}
 	}
 
@@ -214,19 +232,18 @@ func (server *Server) handleFileUpload(ctx *wrappers.Context) {
 				break
 			}
 			if err != io.ErrUnexpectedEOF {
-				return
+				return nil
 			}
 		}
 
 		// TODO: Validate sizes
 		log.Debugf("Read %d bytes for file '%s'", length, file.Name())
-		err = server.dataStore.Write(archiveId, fileId, buffer, rangeStart)
+		err = server.dataStore.Write(archive.Id(), fileId, buffer, rangeStart)
 		if err != nil {
-			log.Error("Unable to write to file: ", err.Error())
 			ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-			return
+			return err
 		}
 	}
 
-	return
+	return nil
 }

@@ -8,14 +8,14 @@ func extractFields(ctx *Context, fields log.Fields) {
 	fields["method"] = ctx.Method()
 	fields["path"] = ctx.Path()
 
-	if isAdmin, claims := ctx.AdminClaims(); isAdmin {
+	if claims, isAdmin := ctx.AdminClaims(); isAdmin {
 		fields["admin"] = isAdmin
 		fields["token"] = claims.Id
 	} else {
 		fields["admin"] = false
 	}
 
-	if isArchive, claims := ctx.AdminClaims(); isArchive {
+	if claims, isArchive := ctx.AdminClaims(); isArchive {
 		fields["token"] = claims.Id
 	}
 }

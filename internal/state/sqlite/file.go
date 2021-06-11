@@ -3,11 +3,11 @@ package sqlite
 type SqliteFile struct {
 	id           string
 	name         string
-	lastModified int
+	lastModified int64
 	size         int
 	mime         string
 	nonce        string
-	created      int
+	created      int64
 }
 
 func (file *SqliteFile) Id() string {
@@ -18,7 +18,7 @@ func (file *SqliteFile) Name() string {
 	return file.name
 }
 
-func (file *SqliteFile) LastModified() int {
+func (file *SqliteFile) LastModified() int64 {
 	return file.lastModified
 }
 
@@ -34,6 +34,6 @@ func (file *SqliteFile) Nonce() string {
 	return file.nonce
 }
 
-func (file *SqliteFile) Created() int {
+func (file *SqliteFile) Created() int64 {
 	return file.created
 }

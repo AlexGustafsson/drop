@@ -13,7 +13,7 @@ type SqliteArchive struct {
 	maximumFileCount int
 	maximumFileSize  int
 	maximumSize      int
-	created          int
+	created          int64
 }
 
 func (archive *SqliteArchive) Id() string {
@@ -36,7 +36,7 @@ func (archive *SqliteArchive) MaximumSize() int {
 	return archive.maximumSize
 }
 
-func (archive *SqliteArchive) Created() int {
+func (archive *SqliteArchive) Created() int64 {
 	return archive.created
 }
 
@@ -165,32 +165,38 @@ func (archive *SqliteArchive) Tokens() ([]state.ArchiveToken, error) {
 	return tokens, nil
 }
 
-func (archive *SqliteArchive) CreateToken(lifetime int) (string, error) {
-	token, id, err := auth.CreateArchiveToken(archive.store.secret, archive.id, archive.name, lifetime, archive.maximumFileCount, archive.maximumFileSize, archive.maximumSize)
+func (archive *SqliteArchive) CreateToken(lifetime int) (state.ArchiveToken, string, error) {
+	tokenString, claims, err := auth.CreateArchiveToken(archive.store.secret, archive.id, archive.name, lifetime, archive.maximumFileCount, archive.maximumFileSize, archive.maximumSize)
 	if err != nil {
-		return "", nil
+		return nil, "", nil
 	}
 
 	statement, err := archive.store.db.Prepare(`
 		INSERT INTO archive_tokens
-		(id, archiveId)
+		(id, archiveId, expires, created)
 		VALUES
-		(?, ?)
+		(?, ?, ?, ?)
 	`)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	defer statement.Close()
 
-	_, err = statement.Exec(id, archive.Id())
+	_, err = statement.Exec(claims.Id, archive.Id(), claims.ExpiresAt, claims.IssuedAt)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
-	return token, nil
+	token := &SqliteArchiveToken{
+		id:      claims.Id,
+		expires: claims.ExpiresAt,
+		created: claims.IssuedAt,
+	}
+
+	return token, tokenString, nil
 }
 
-func (archive *SqliteArchive) CreateFile(name string, lastModified int, size int, mime string, nonce string) (state.File, error) {
+func (archive *SqliteArchive) CreateFile(name string, lastModified int64, size int, mime string, nonce string) (state.File, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -215,4 +221,52 @@ func (archive *SqliteArchive) CreateFile(name string, lastModified int, size int
 
 	file, _, err := archive.File(id)
 	return file, err
+}
+
+func (archive *SqliteArchive) DeleteFile(id string) (bool, error) {
+	statement, err := archive.store.db.Prepare(`
+		DELETE
+		FROM files
+		WHERE files.id = ?
+	`)
+	if err != nil {
+		return false, err
+	}
+	defer statement.Close()
+
+	result, err := statement.Exec(id)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rows > 0, nil
+}
+
+func (archive *SqliteArchive) DeleteToken(id string) (bool, error) {
+	statement, err := archive.store.db.Prepare(`
+		DELETE
+		FROM archive_tokens
+		WHERE archive_tokens.id = ?
+	`)
+	if err != nil {
+		return false, err
+	}
+	defer statement.Close()
+
+	result, err := statement.Exec(id)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rows > 0, nil
 }

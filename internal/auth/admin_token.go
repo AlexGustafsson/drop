@@ -12,15 +12,17 @@ type AdminTokenClaims struct {
 	jwt.StandardClaims
 }
 
-func CreateAdminToken(secret []byte, lifetime int) (string, string, error) {
+func CreateAdminToken(secret []byte, lifetime int) (string, *AdminTokenClaims, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return "", "", fmt.Errorf("Failed to generate token id: %s", err.Error())
+		return "", nil, fmt.Errorf("Failed to generate token id: %s", err.Error())
 	}
 
+	now := time.Now().Unix()
 	claims := AdminTokenClaims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix() + int64(lifetime),
+			ExpiresAt: now + int64(lifetime),
+			IssuedAt:  now,
 			Id:        id.String(),
 			Issuer:    "drop",
 			Subject:   "admin",
@@ -29,10 +31,10 @@ func CreateAdminToken(secret []byte, lifetime int) (string, string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString(secret)
 	if err != nil {
-		return "", "", fmt.Errorf("Failed to sign token: %s", err.Error())
+		return "", nil, fmt.Errorf("Failed to sign token: %s", err.Error())
 	}
 
-	return signedToken, id.String(), nil
+	return signedToken, &claims, nil
 }
 
 func ValidateAdminToken(secret []byte, bearerToken string) (*AdminTokenClaims, error) {
