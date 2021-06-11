@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AlexGustafsson/drop/internal/data"
-	"github.com/AlexGustafsson/drop/internal/server/middleware/authenticator"
-	"github.com/AlexGustafsson/drop/internal/server/middleware/logger"
+	"github.com/AlexGustafsson/drop/internal/server/wrappers"
 	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -33,14 +32,15 @@ func (server *Server) Start(address string, port uint16) error {
 		DisableStartupMessage: true,
 	})
 	app.Server().StreamRequestBody = true
-	app.Use(authenticator.New(server.stateStore.Secret()))
-	app.Use(logger.New())
 	app.Use(cors.New())
 
-	app.Post("/api/v1/archive", server.handleArchiveCreation)
-	app.Post("/api/v1/archive/:archiveId/token", server.handleArchiveTokenCreation)
-	app.Post("/api/v1/archive/:archiveId/file", server.handleFileCreation)
-	app.Post("/api/v1/archive/:archiveId/file/:fileId", server.handleFileUpload)
+	handle := wrappers.NewHandle(server.stateStore)
+
+	app.Get("/api/v1/archives", handle(server.handleArchiveRetrieval))
+	app.Post("/api/v1/archives", handle(server.handleArchiveCreation))
+	app.Post("/api/v1/archives/:archiveId/tokens", handle(server.handleArchiveTokenCreation))
+	app.Post("/api/v1/archives/:archiveId/files", handle(server.handleFileCreation))
+	app.Post("/api/v1/archives/:archiveId/files/:fileId", handle(server.handleFileUpload))
 
 	app.Static("/", server.frontend)
 	app.Get("*", func(ctx *fiber.Ctx) error {

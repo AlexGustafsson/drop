@@ -26,7 +26,7 @@ var Commands = []*cli.Command{
 	},
 	{
 		Name:   "token",
-		Usage:  "Create a token",
+		Usage:  "Create an admin token",
 		Action: tokenCommand,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -35,40 +35,10 @@ var Commands = []*cli.Command{
 				Usage:   "Path to config file",
 				Value:   "config.yml",
 			},
-			&cli.StringFlag{
-				Name:  "name",
-				Usage: "Name of the collection",
-				Value: "",
-			},
 			&cli.UintFlag{
 				Name:  "lifetime",
 				Usage: "Lifetime of the token in seconds",
 				Value: 3600,
-			},
-			&cli.UintFlag{
-				Name:  "maximumFileCount",
-				Usage: "Maximum number of files allowed",
-				Value: 0,
-			},
-			&cli.UintFlag{
-				Name:  "maximumFileSize",
-				Usage: "Maximum number of files allowed in bytes",
-				Value: 5242880,
-			},
-			&cli.UintFlag{
-				Name:  "maximumSize",
-				Usage: "Total maximum size in bytes",
-				Value: 5242880,
-			},
-			&cli.BoolFlag{
-				Name:  "share",
-				Usage: "Whether or not to output a shareable link",
-				Value: false,
-			},
-			&cli.BoolFlag{
-				Name:  "includeSecret",
-				Usage: "Whether or not to include the secret in the share link",
-				Value: false,
 			},
 		},
 	},

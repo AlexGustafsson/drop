@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/AlexGustafsson/drop/internal/server/wrappers"
 	"github.com/gofiber/fiber/v2"
 	log "github.com/sirupsen/logrus"
 )
@@ -28,12 +29,17 @@ type CreateArchiveTokenResponse struct {
 	Token string `json:"token"`
 }
 
-func (server *Server) handleArchiveCreation(ctx *fiber.Ctx) error {
+func (server *Server) handleArchiveCreation(ctx *wrappers.Context) {
+	if isAdmin, _ := ctx.AdminClaims(); !isAdmin {
+		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
+		return
+	}
+
 	var request CreateArchiveRequest
 	if err := ctx.BodyParser(&request); err != nil {
 		log.Error("Failed to parse request body", err.Error())
 		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-		return nil
+		return
 	}
 
 	archive, err := server.stateStore.CreateArchive(
@@ -45,7 +51,7 @@ func (server *Server) handleArchiveCreation(ctx *fiber.Ctx) error {
 	if err != nil {
 		log.Error("Failed to create archive", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	var response CreateArchiveResponse
@@ -55,19 +61,24 @@ func (server *Server) handleArchiveCreation(ctx *fiber.Ctx) error {
 	if err != nil {
 		log.Error("Failed to encode create archive response", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	ctx.Status(fiber.StatusCreated)
-	return nil
+	return
 }
 
-func (server *Server) handleArchiveTokenCreation(ctx *fiber.Ctx) error {
+func (server *Server) handleArchiveTokenCreation(ctx *wrappers.Context) {
+	if isAdmin, _ := ctx.AdminClaims(); !isAdmin {
+		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
+		return
+	}
+
 	var request CreateArchiveTokenRequest
 	if err := ctx.BodyParser(&request); err != nil {
 		log.Error("Failed to parse request body", err.Error())
 		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-		return nil
+		return
 	}
 
 	archiveId := ctx.Params("archiveId")
@@ -75,18 +86,18 @@ func (server *Server) handleArchiveTokenCreation(ctx *fiber.Ctx) error {
 	if err != nil {
 		log.Error("Unable to get archive", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 	if !archiveExists {
 		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return nil
+		return
 	}
 
 	token, err := archive.CreateToken(request.Lifetime)
 	if err != nil {
 		log.Error("Failed to create token", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	var response CreateArchiveTokenResponse
@@ -96,9 +107,16 @@ func (server *Server) handleArchiveTokenCreation(ctx *fiber.Ctx) error {
 	if err != nil {
 		log.Error("Failed to encode create archive token response", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	ctx.Status(fiber.StatusCreated)
-	return nil
+	return
+}
+
+func (server *Server) handleArchiveRetrieval(ctx *wrappers.Context) {
+	if isAdmin, _ := ctx.AdminClaims(); !isAdmin {
+		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
+		return
+	}
 }

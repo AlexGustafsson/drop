@@ -3,7 +3,7 @@ package server
 import (
 	"io"
 
-	"github.com/AlexGustafsson/drop/internal/authentication"
+	"github.com/AlexGustafsson/drop/internal/server/wrappers"
 	"github.com/gofiber/fiber/v2"
 	log "github.com/sirupsen/logrus"
 )
@@ -22,13 +22,12 @@ type CreateFileResponse struct {
 	Id string `json:"id"`
 }
 
-func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
-	claimsLocal := ctx.Locals("claims")
-	if claimsLocal == nil {
+func (server *Server) handleFileCreation(ctx *wrappers.Context) {
+	isArchive, claims := ctx.ArchiveClaims()
+	if !isArchive {
 		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return nil
+		return
 	}
-	claims := claimsLocal.(*authentication.TokenClaims)
 
 	archiveId := ctx.Params("archiveId")
 	if claims.ArchiveId != archiveId {
@@ -37,33 +36,33 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 			"tokenId":   claims.ArchiveId,
 		}).Error("Attempt at targeting a non-permitted archive")
 		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return nil
+		return
 	}
 
 	var request CreateFileRequest
 	if err := ctx.BodyParser(&request); err != nil {
 		log.Error("Failed to parse request body", err.Error())
 		ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-		return nil
+		return
 	}
 
 	archive, archiveExists, err := server.stateStore.Archive(archiveId)
 	if err != nil {
 		log.Error("Unable to get archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	if !archiveExists {
 		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return nil
+		return
 	}
 
-	hasToken, err := archive.HasToken(claims.Id)
+	_, hasToken, err := archive.Token(claims.Id)
 	if err != nil {
 		log.Error("Unable to check if token exists for archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	if !hasToken {
@@ -71,21 +70,21 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 			"tokenId": claims.Id,
 		}).Error("Attempt at using bad or revoked token")
 		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return nil
+		return
 	}
 
 	file, err := archive.CreateFile(request.Name, request.LastModified, request.Size, request.Mime, request.Nonce)
 	if err != nil {
 		log.Error("Unable to create file: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	err = server.dataStore.Touch(archiveId, file.Id(), uint64(file.Size()))
 	if err != nil {
 		log.Error("Unable to touch file: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	// TODO: Retain context of created files during the session
@@ -100,20 +99,19 @@ func (server *Server) handleFileCreation(ctx *fiber.Ctx) error {
 	if err != nil {
 		log.Error("Failed to encode create file response", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	ctx.Status(fiber.StatusCreated)
-	return nil
+	return
 }
 
-func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
-	claimsLocal := ctx.Locals("claims")
-	if claimsLocal == nil {
+func (server *Server) handleFileUpload(ctx *wrappers.Context) {
+	isArchive, claims := ctx.ArchiveClaims()
+	if !isArchive {
 		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return nil
+		return
 	}
-	claims := claimsLocal.(*authentication.TokenClaims)
 
 	archiveId := ctx.Params("archiveId")
 	if claims.ArchiveId != archiveId {
@@ -122,26 +120,26 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 			"tokenId":   claims.ArchiveId,
 		}).Error("Attempt at targeting a non-permitted archive")
 		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return nil
+		return
 	}
 
 	archive, archiveExists, err := server.stateStore.Archive(archiveId)
 	if err != nil {
 		log.Error("Unable to get archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	if !archiveExists {
 		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return nil
+		return
 	}
 
-	hasToken, err := archive.HasToken(claims.Id)
+	_, hasToken, err := archive.Token(claims.Id)
 	if err != nil {
 		log.Error("Unable to check if token exists for archive: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	if !hasToken {
@@ -149,7 +147,7 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 			"tokenId": claims.Id,
 		}).Error("Attempt at using bad or revoked token")
 		ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
-		return nil
+		return
 	}
 
 	fileId := ctx.Params("fileId")
@@ -157,19 +155,19 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 	if err != nil {
 		log.Error("Unable to get file: ", err.Error())
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	if !fileExists {
 		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
-		return nil
+		return
 	}
 
 	fileExists, err = server.dataStore.Exists(archiveId, fileId)
 	if !fileExists {
 		log.Errorf("File is tracked in state but does not exist in the store: %s/%s", archiveId, fileId)
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return nil
+		return
 	}
 
 	contentRangeHeader := ctx.Get("Content-Range")
@@ -183,24 +181,27 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 		if err != nil {
 			log.Errorf("Unable to parse Content-Range header: ", err.Error())
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-			return nil
+			return
 		}
 
 		// Only bytes are supported
 		if rangeUnit != "bytes" {
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-			return nil
+			return
 		}
 
 		// Incoherent sizes
 		if rangeSize != uint64(file.Size()) {
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
-			return nil
+			return
 		}
 	}
 
 	// TODO: Validate sizes and range
 	log.Debugf("Got request to write from %d-%d", rangeStart, rangeEnd)
+
+	// TODO: Lock the file once written to
+	// TODO: Don't allow writing to the same range more than once
 
 	reader := ctx.Context().RequestBodyStream()
 	buffer := make([]byte, 0, server.ChunkSize)
@@ -213,7 +214,7 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 				break
 			}
 			if err != io.ErrUnexpectedEOF {
-				return err
+				return
 			}
 		}
 
@@ -223,9 +224,9 @@ func (server *Server) handleFileUpload(ctx *fiber.Ctx) error {
 		if err != nil {
 			log.Error("Unable to write to file: ", err.Error())
 			ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-			return nil
+			return
 		}
 	}
 
-	return nil
+	return
 }

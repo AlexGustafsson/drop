@@ -1,12 +1,11 @@
 package commands
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 
-	"github.com/AlexGustafsson/drop/internal/authentication"
 	"github.com/AlexGustafsson/drop/internal/configuration"
+	"github.com/AlexGustafsson/drop/internal/state"
+	"github.com/AlexGustafsson/drop/internal/state/sqlite"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/urfave/cli/v2"
@@ -14,13 +13,7 @@ import (
 
 func tokenCommand(context *cli.Context) error {
 	configPath := context.String("config")
-	name := context.String("name")
 	lifetime := context.Uint("lifetime")
-	maximumFileCount := context.Uint("maximumFileCount")
-	maximumFileSize := context.Uint("maximumFileSize")
-	maximumSize := context.Uint("maximumSize")
-	share := context.Bool("share")
-	includeSecret := context.Bool("includeSecret")
 
 	config, err := configuration.Load(configPath)
 	if err != nil {
@@ -40,24 +33,23 @@ func tokenCommand(context *cli.Context) error {
 		return err
 	}
 
-	token, _, err := authentication.CreateToken(secret, "temp", name, int(lifetime), int(maximumFileCount), int(maximumFileSize), int(maximumSize))
+	var stateStore state.Store
+	if config.Store.Adapter == "sqlite" {
+		sqliteStore := sqlite.New(secret)
+		err = sqliteStore.Connect(config.Store.ConnectionString)
+		if err != nil {
+			return err
+		}
+		defer sqliteStore.Disconnect()
+		stateStore = sqliteStore
+	}
+
+	token, err := stateStore.CreateAdminToken(int(lifetime))
 	if err != nil {
 		return err
 	}
 
-	if share {
-		if includeSecret {
-			secretBytes := make([]byte, 32)
-			rand.Read(secretBytes)
-			secret := hex.EncodeToString(secretBytes)
-
-			fmt.Printf("http://localhost:8080/upload#token=%s&secret=%s\n", token, secret)
-		} else {
-			fmt.Printf("http://localhost:8080/upload#token=%s\n", token)
-		}
-	} else {
-		fmt.Println(token)
-	}
+	fmt.Println(token)
 
 	return nil
 }
