@@ -13,14 +13,20 @@ paths:
   /archives:
     get:
       summary: List all archives.
+      security:
+        - AdminAuth: []
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ArchiveResponse"
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArchiveResponse"
     post:
       summary: Create an archive.
+      security:
+        - AdminAuth: []
       requestBody:
         required: true
         content:
@@ -34,17 +40,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ArchiveResponse"
+    delete:
+      summary: Delete an archive.
+      security:
+        - AdminAuth: []
+      responses:
+        "200":
+          description: Deleted
+        "404":
+          description: Not found
 
   /archives/{archiveId}/tokens:
     post:
       summary: Create a token for an archive.
+      security:
+        - AdminAuth: []
       parameters:
-        - in: path
-          name: archiveId
-          schema:
-            type: string
-          required: true
-          description: The id of the target archive.
+        - $ref: "#/components/parameters/ArchiveId"
       requestBody:
         required: true
         content:
@@ -58,19 +70,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TokenResponse"
+        "404":
+          description: Not found
+    delete:
+      summary: Delete a token for an archive.
+      security:
+        - AdminAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ArchiveId"
+      respones:
+        "200":
+          description: Deleted
 
   /archives/{archiveId}/files:
+    get:
+      summary: Retrieve all files for an archive.
+      security:
+        - AdminAuth: []
+      parameters:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileResponse"
+        "404":
+          description: Not found
     post:
       summary: Create a file.
       security:
         - ArchiveAuth: []
       parameters:
-        - in: path
-          name: archiveId
-          schema:
-            type: string
-          required: true
-          description: The id of the target archive.
+        - $ref: "#/components/parameters/ArchiveId"
       requestBody:
         required: true
         content:
@@ -86,24 +119,29 @@ paths:
                   $ref: "#/components/schemas/FileResponse"
           "403":
             description: Forbidden
+          "404":
+            description: Not found
   /archives/{archiveId}/files/{fileId}:
+    get:
+      summary: Retrieve a file.
+      security:
+        - AdminAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ArchiveId"
+        - $ref: "#/components/parameters/FileId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileResponse"
     post:
       summary: Upload bytes of a file.
       security:
         - ArchiveAuth: []
       parameters:
-        - in: path
-          name: archiveId
-          schema:
-            type: string
-          required: true
-          description: The id of the target archive.
-        - in: path
-          name: fileId
-          schema:
-            type: string
-          required: true
-          description: The id of the target file.
+        - $ref: "#/components/parameters/ArchiveId"
+        - $ref: "#/components/parameters/FileId"
         - in: header
           name: Content-Range
           type: string
@@ -116,6 +154,20 @@ paths:
             schema:
               type: string
               format: binary
+      responses:
+        "201":
+          description: Created
+    delete:
+      summary: Delete a file.
+      security:
+        - AdminAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ArchiveId"
+        - $ref: "#/components/parameters/FileId"
+      responses:
+        "200":
+          description: Deleted
+
 
 components:
   schemas:
@@ -223,7 +275,29 @@ components:
           type: string
           description: Hex-encoded nonce used for encryption.
 
+  parameters:
+    ArchiveId:
+      in: path
+      name: archiveId
+      schema:
+        type: string
+      required: true
+      description: The id of the target archive.
+
+    FileId:
+      in: path
+      name: fileId
+      schema:
+        type: string
+      required: true
+      description: The id of the target file.
+
   securitySchemes:
     ArchiveAuth:
       type: http
       scheme: bearer
+      description: Authentication for a specific archive.
+    AdminAuth:
+      type: http
+      scheme: bearer
+      description: Authentication for an admin.
