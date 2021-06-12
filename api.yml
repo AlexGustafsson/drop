@@ -10,6 +10,45 @@ servers:
     description: Development server
 
 paths:
+  /admin/tokens:
+    get:
+      summary: Retrieve all admin tokens.
+      tags:
+        - Admin Tokens
+      security:
+        - AdminAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokensResponse"
+  /admin/tokens/{tokenId}:
+    get:
+      summary: Retrieve an admin token.
+      tags:
+        - Admin Tokens
+      security:
+        - AdminAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ArchiveId"
+      respones:
+        "200":
+          content:
+            application/json:
+              $ref: "#/components/schemas/TokenResponse"
+    delete:
+      summary: Delete a token for an archive.
+      tags:
+        - Admin Tokens
+      security:
+        - AdminAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ArchiveId"
+      respones:
+        "200":
+          description: Deleted
+
   /archives:
     get:
       summary: List all archives.
@@ -71,7 +110,7 @@ paths:
     get:
       summary: Retrieve tokens for an archive.
       tags:
-        - Tokens
+        - Archive Tokens
       security:
         - AdminAuth: []
       parameters:
@@ -85,7 +124,7 @@ paths:
     post:
       summary: Create a token for an archive.
       tags:
-        - Tokens
+        - Archive Tokens
       security:
         - AdminAuth: []
       parameters:
@@ -109,7 +148,7 @@ paths:
     get:
       summary: Retrieve a token for an archive.
       tags:
-        - Tokens
+        - Archive Tokens
       security:
         - AdminAuth: []
       parameters:
@@ -122,7 +161,7 @@ paths:
     delete:
       summary: Delete a token for an archive.
       tags:
-        - Tokens
+        - Archive Tokens
       security:
         - AdminAuth: []
       parameters:
@@ -247,8 +286,10 @@ tags:
     description: Archive-related endpoints
   - name: Files
     description: File-related endpoints
-  - name: Tokens
-    description: Token-related endpoints
+  - name: Archive Tokens
+    description: Archive token-related endpoints
+  - name: Admin Tokens
+    description: Admin token-related endpoints
 
 components:
   schemas:
