@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/AlexGustafsson/drop/internal/auth"
 	"github.com/AlexGustafsson/drop/internal/state"
@@ -52,28 +53,31 @@ func (store *SqliteStore) CreateArchive(name string, maximumFileCount int, maxim
 	}
 	id := rawId.String()
 
-	archive := &SqliteArchive{
-		id:               id,
-		name:             name,
-		maximumFileCount: maximumFileCount,
-		maximumFileSize:  maximumFileSize,
-		maximumSize:      maximumSize,
-	}
+	created := time.Now().Unix()
 
 	statement, err := store.db.Prepare(`
 		INSERT INTO archives
-		(id, name, maximumFileCount, maximumFileSize, maximumSize)
+		(id, name, maximumFileCount, maximumFileSize, maximumSize, created)
 		VALUES
-		(?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return nil, err
 	}
 	defer statement.Close()
 
-	_, err = statement.Exec(id, name, maximumFileCount, maximumFileSize, maximumSize)
+	_, err = statement.Exec(id, name, maximumFileCount, maximumFileSize, maximumSize, created)
 	if err != nil {
 		return nil, err
+	}
+
+	archive := &SqliteArchive{
+		id:               id,
+		name:             name,
+		maximumFileCount: maximumFileCount,
+		maximumFileSize:  maximumFileSize,
+		maximumSize:      maximumSize,
+		created:          created,
 	}
 
 	return archive, nil
@@ -180,7 +184,7 @@ func (store *SqliteStore) AdminToken(id string) (state.AdminToken, bool, error) 
 		SELECT
 		id, expires, created
 		FROM admin_tokens
-		WHERE AND admin_tokens.id = ?
+		WHERE admin_tokens.id = ?
 	`)
 	if err != nil {
 		return nil, false, err

@@ -86,12 +86,20 @@ func (ctx *Context) Parse() error {
 	bearerToken = strings.TrimPrefix(bearerToken, "Bearer ")
 
 	if bearerToken != "" {
-		err := ctx.parseAdminToken(bearerToken)
-		if err != nil {
+		tokenType, err := auth.ExtractTokenType(bearerToken)
+		log.Debugf("Token type: %d", tokenType)
+		switch tokenType {
+		case auth.AdminTokenType:
+			err = ctx.parseAdminToken(bearerToken)
+		case auth.ArchiveTokenType:
 			err = ctx.parseArchiveToken(bearerToken)
-			if err != nil {
-				return err
-			}
+		case auth.InvalidTokenType:
+		default:
+			err = nil
+		}
+
+		if err != nil {
+			return err
 		}
 	}
 

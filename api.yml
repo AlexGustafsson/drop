@@ -44,6 +44,7 @@ paths:
                 $ref: "#/components/schemas/ArchiveResponse"
   /archives/{archiveId}:
     get:
+      summary: Retrieve an archive.
       tags:
         - Archives
       security:

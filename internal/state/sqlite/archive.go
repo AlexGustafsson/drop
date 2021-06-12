@@ -1,6 +1,8 @@
 package sqlite
 
 import (
+	"time"
+
 	"github.com/AlexGustafsson/drop/internal/auth"
 	"github.com/AlexGustafsson/drop/internal/state"
 	"github.com/google/uuid"
@@ -205,22 +207,32 @@ func (archive *SqliteArchive) CreateFile(name string, lastModified int64, size i
 
 	statement, err := archive.store.db.Prepare(`
 		INSERT INTO files
-		(id, archiveId, name, lastModified, size, mime, nonce)
+		(id, archiveId, name, lastModified, size, mime, nonce, created)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return nil, err
 	}
 	defer statement.Close()
 
-	_, err = statement.Exec(id, archive.id, name, lastModified, size, mime, nonce)
+	created := time.Now().Unix()
+	_, err = statement.Exec(id, archive.id, name, lastModified, size, mime, nonce, created)
 	if err != nil {
 		return nil, err
 	}
 
-	file, _, err := archive.File(id)
-	return file, err
+	file := &SqliteFile{
+		id:           id,
+		name:         name,
+		lastModified: lastModified,
+		size:         size,
+		mime:         mime,
+		nonce:        nonce,
+		created:      created,
+	}
+
+	return file, nil
 }
 
 func (archive *SqliteArchive) DeleteFile(id string) (bool, error) {
