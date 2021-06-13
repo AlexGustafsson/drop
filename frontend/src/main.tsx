@@ -1,6 +1,9 @@
 import ReactDOM from "react-dom";
 import React from "react";
 
+import { IntlProvider, injectIntl } from "react-intl";
+import { translationsForLanguage } from "./i18n";
+
 import App from "./app";
 
 import "./main.css";
@@ -17,10 +20,14 @@ function disableBodyDragAndDrop() {
 
 async function main() {
   disableBodyDragAndDrop();
+  const locale = navigator.language;
+  const messages = translationsForLanguage(locale);
 
   ReactDOM.render(
     <React.StrictMode>
-      <App />
+      <IntlProvider defaultLocale="en-us" locale={locale} messages={messages}>
+        <App />
+      </IntlProvider>
     </React.StrictMode>,
     document.getElementById("app"),
   );

@@ -1,4 +1,6 @@
 import React from "react";
+import type { WrappedComponentProps } from "react-intl";
+import { injectIntl, FormattedMessage } from "react-intl";
 
 import {humanReadableBytes} from "../lib/utils";
 import Fab from "../components/fab";
@@ -27,7 +29,7 @@ type MainViewState = {
   archives: Archive[],
 };
 
-export default class MainView extends React.Component<{}, MainViewState> {
+class MainView extends React.Component<WrappedComponentProps, MainViewState> {
   state: MainViewState = {
     showModal: false,
     archives: [{
@@ -47,7 +49,7 @@ export default class MainView extends React.Component<{}, MainViewState> {
     }]
   };
 
-  constructor(props: {}) {
+  constructor(props: WrappedComponentProps) {
     super(props);
 
     this.toggleModal = this.toggleModal.bind(this);
@@ -59,12 +61,8 @@ export default class MainView extends React.Component<{}, MainViewState> {
     });
   }
 
-  readableFileSize(size: number): string {
-    const kilo = size % 1024;
-    const mega = (size - kilo * 1024) % 1024
-  }
-
   render() {
+    const {intl} = this.props;
     const archives = this.state.archives.map(archive => <article>
       <h3>{archive.name}</h3>
       <ul>
@@ -74,7 +72,7 @@ export default class MainView extends React.Component<{}, MainViewState> {
           <p className="bubble">{humanReadableBytes(file.size)}</p>
         </li>)}
       </ul>
-    </article>)
+    </article>);
 
     return <main className="page main-page">
       {
@@ -82,11 +80,11 @@ export default class MainView extends React.Component<{}, MainViewState> {
         &&
         <Modal onClick={this.toggleModal}>
           <main>
-            <input type="text" placeholder="Archive name" />
-            <input type="number" min="0" placeholder="Maximum size" />
-            <input type="number" min="0" placeholder="Maximum file count" />
-            <input type="number" min="0" placeholder="Maximum file size" />
-            <button className="primary" onClick={this.toggleModal}>Create</button>
+            <input type="text" placeholder={intl.formatMessage({id: "archive-name"})} />
+            <input type="number" min="0" placeholder={intl.formatMessage({ id: "max-size" })} />
+            <input type="number" min="0" placeholder={intl.formatMessage({ id: "max-file-count" })} />
+            <input type="number" min="0" placeholder={intl.formatMessage({ id: "max-file-size" })} />
+            <button className="primary" onClick={this.toggleModal}><FormattedMessage id="actions.create" /></button>
           </main>
         </Modal>
       }
@@ -97,7 +95,9 @@ export default class MainView extends React.Component<{}, MainViewState> {
         <h2>There are no uploaded files yet</h2>
         <button className="primary" onClick={this.toggleModal}>Create an archive</button>
       </div>}
-      <div class="grid">{archives}</div>
+      <div className="grid">{archives}</div>
     </main>
   }
 }
+
+export default injectIntl(MainView);

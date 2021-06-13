@@ -1,5 +1,6 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
+import { FormattedMessage } from "react-intl";
 
 import Dropper from "../components/dropper";
 import DroppedFile from "../components/dropped-file";
@@ -96,9 +97,9 @@ export default class UploadView extends React.Component<{}, UploadViewState> {
     } else {
       return <main className="page upload-page centered unauthorized">
         <img src={UndrawSecureLogin} />
-        <h1>Unauthorized</h1>
-        <h2>Make sure you clicked on the provided link</h2>
-        <Link to="/"><button className="primary">Take me home</button></Link>
+        <h1><FormattedMessage id="errors.messages.unauthorized" /></h1>
+        <h2><FormattedMessage id="errors.descriptions.unauthorized-upload" /></h2>
+        <Link to="/"><button className="primary"><FormattedMessage id="actions.take-me-home" /></button></Link>
       </main>
     }
   }
