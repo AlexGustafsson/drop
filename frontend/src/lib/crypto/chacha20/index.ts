@@ -3,9 +3,6 @@
  * https://datatracker.ietf.org/doc/html/rfc7539#section-2
  */
 
-// TODO: Check if a DataView can be used without being too slow:
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView.
-
 import State from "./state";
 
 // Block is 1-based
@@ -15,8 +12,6 @@ export function encryptBlock(key: ArrayBuffer, nonce: ArrayBuffer, block: Uint8A
   if (block.byteLength > 64)
     throw new Error(`The block must not be larger than 64 bytes, was ${block.byteLength}`);
 
-  // TODO: Reuse the same state instead, bake in with a chacha instance like go
-  // check for rollback etc.
   const keyStream = new State()
     .withKey(key)
     .withBlockCount(blockCount)
@@ -55,12 +50,6 @@ export function encrypt(key: ArrayBuffer, nonce: ArrayBuffer, message: ArrayBuff
   }
 }
 
-// TODO: Rewrite as a generator with yield instead, no need for callback then
-// TODO: Rewrite with larger block support, like the go implementation
-// generate as large of a key stream that's necessary, then XOR instead
-// of doing it block by block. Still make sure that it has to be on a block
-// basis, that is, increasing the counter by 1 for each 64 bytes
-// Should reduce call stack, memory allocations (count, not size)
 export type ChunkHandler = (error: DOMException | null, chunk: ArrayBuffer | null, offset: number) => void;
 export async function encryptFile(key: ArrayBuffer, nonce: ArrayBuffer, file: File, onCiphertextChunk: ChunkHandler) {
   if (!(key instanceof ArrayBuffer))

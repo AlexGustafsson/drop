@@ -18,7 +18,6 @@ type ArchiveFile = {
   size: number,
 };
 
-// TODO: Move to client lib?
 type Archive = {
   name: string,
   files: ArchiveFile[],

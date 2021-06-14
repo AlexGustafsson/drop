@@ -21,7 +21,6 @@ func (store *LocalDataStore) Prepare() error {
 }
 
 func (store *LocalDataStore) Write(archiveId string, fileId string, content []byte, offset uint64) error {
-	// TODO: properly resolve path
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
 	file, err := os.OpenFile(filePath, os.O_WRONLY, 0660)
 	if err != nil {
@@ -43,7 +42,6 @@ func (store *LocalDataStore) Write(archiveId string, fileId string, content []by
 }
 
 func (store *LocalDataStore) Exists(archiveId string, fileId string) (bool, error) {
-	// TODO: properly resolve path
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
 	_, err := os.Stat(filePath)
 	if err != nil {
@@ -58,7 +56,6 @@ func (store *LocalDataStore) Exists(archiveId string, fileId string) (bool, erro
 }
 
 func (store *LocalDataStore) Touch(archiveId string, fileId string, size uint64) error {
-	// TODO: properly resolve path
 	directoryPath := fmt.Sprintf("%s/%s", store.directory, archiveId)
 	err := os.MkdirAll(directoryPath, 0771)
 	if err != nil {
@@ -76,7 +73,6 @@ func (store *LocalDataStore) Touch(archiveId string, fileId string, size uint64)
 }
 
 func (store *LocalDataStore) Reader(archiveId string, fileId string) (io.Reader, error) {
-	// TODO: Allocate the file
 	filePath := fmt.Sprintf("%s/%s/%s", store.directory, archiveId, fileId)
 	return os.OpenFile(filePath, os.O_RDONLY, 0660)
 }

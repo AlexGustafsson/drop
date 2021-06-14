@@ -215,11 +215,7 @@ func (server *Server) handleFileUpload(ctx *wrappers.Context) error {
 		}
 	}
 
-	// TODO: Validate sizes and range
 	log.Debugf("Got request to write from %d-%d", rangeStart, rangeEnd)
-
-	// TODO: Lock the file once written to
-	// TODO: Don't allow writing to the same range more than once
 
 	reader := ctx.Context().RequestBodyStream()
 	buffer := make([]byte, 0, server.ChunkSize)
@@ -236,7 +232,6 @@ func (server *Server) handleFileUpload(ctx *wrappers.Context) error {
 			}
 		}
 
-		// TODO: Validate sizes
 		log.Debugf("Read %d bytes for file '%s'", length, file.Name())
 		err = server.dataStore.Write(archive.Id(), fileId, buffer, rangeStart)
 		if err != nil {
