@@ -105,6 +105,7 @@ func (server *Server) handleArchiveCreate(ctx *wrappers.Context) error {
 		MaximumFileCount: archive.MaximumFileCount(),
 		MaximumFileSize:  archive.MaximumFileSize(),
 		MaximumSize:      archive.MaximumSize(),
+		Files:            make([]FileResponse, 0),
 	}
 
 	err = ctx.JSON(response)
