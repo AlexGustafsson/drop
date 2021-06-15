@@ -28,7 +28,10 @@ help:
 	pcregrep -Mo '^(#.*\n)+^[^# ]+:' Makefile | sed "s/^\([^# ]\+\):/> \1/g" | sed "s/^#\s\+\(.\+\)/\1/g" | GREP_COLORS='ms=1;34' grep -E --color=always '^>.*|$$' | GREP_COLORS='ms=1;37' grep -E --color=always '^[^>].*|$$'
 
 # Build for the native platform
-build: build/frontend build/drop
+build: generate build/frontend build/drop
+
+# Run generating jobs
+generate: clients/typescript/index.ts
 
 # Package for all platforms
 package: windows darwin linux
@@ -59,6 +62,10 @@ build/frontend: $(frontend_source)
 	cd frontend && yarn build
 	rm -rf build/frontend
 	cp -r frontend/dist build/frontend
+
+# Generate the TypeScript API client
+clients/typescript/index.ts: api.yml
+	npx npx swagger-typescript-api --path $< --output clients/typescript --name index.ts
 
 # Clean all dynamically created files
 clean:
