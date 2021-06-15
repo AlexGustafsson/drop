@@ -1,14 +1,14 @@
 
 import type {Message, UploadFileMessage} from "./types";
-import { encryptFile } from "../crypto/chacha20";
-import { bufferToHex, generateNonce } from "../crypto/utils";
+import {FileStream, EncryptionStream} from "../crypto/streams";
+import { bufferToHex, hexToCryptoKey } from "../crypto/utils";
 
 export default class FileUploader {
   private token: string;
   private archiveId: string;
-  private key: ArrayBuffer;
+  private key: CryptoKey;
 
-  constructor(token: string, archiveId: string, key: ArrayBuffer) {
+  constructor(token: string, archiveId: string, key: CryptoKey) {
     this.token = token;
     this.archiveId = archiveId;
     this.key = key;
@@ -28,7 +28,7 @@ export default class FileUploader {
     });
   }
 
-  async createFile(file: File, nonce: ArrayBuffer): Promise<string> {
+  async createFile(file: File): Promise<string> {
     const request = new Request(`${DROP_API_ROOT}/api/v1/archive/${this.archiveId}/file`, {
       method: "POST",
       headers: new Headers({
@@ -39,8 +39,7 @@ export default class FileUploader {
         name: file.name,
         lastModified: file.lastModified,
         size: file.size,
-        mime: file.type,
-        nonce: bufferToHex(nonce),
+        mime: file.type
       }),
     });
 
@@ -50,37 +49,48 @@ export default class FileUploader {
   }
 
   async upload(file: File, internalFileId: string) {
-    const nonce = generateNonce();
-    const id = await this.createFile(file, nonce);
+    const id = await this.createFile(file);
     let uploadProgress = 0;
     let encryptionProgress = 0;
-    encryptFile(this.key, nonce, file, (error, chunk, offset) => {
-      if (error != null || chunk === null) {
-        // TODO: handle
-        return;
-      }
+    const stream = new FileStream(file).pipeThrough(new EncryptionStream(this.key));
+    const reader = stream.getReader();
+    while (!reader.closed) {
+      reader.read().then(result => {
+        if (!result.value)
+          return;
+        const chunk = result.value!;
 
-      encryptionProgress += chunk.byteLength;
-      this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
+        const offset = 0;
+        const request = new XMLHttpRequest();
+        request.open("POST", `${DROP_API_ROOT}/api/v1/archive/${this.archiveId}/file/${id}`, true);
+        request.setRequestHeader("Authorization", `Bearer ${this.token}`);
+        request.setRequestHeader("Content-Type", "application/json");
+        request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + chunk.byteLength}/${file.size}`);
 
-      const request = new XMLHttpRequest();
-      request.open("POST", `${DROP_API_ROOT}/api/v1/archive/${this.archiveId}/file/${id}`, true);
-      request.setRequestHeader("Authorization", `Bearer ${this.token}`);
-      request.setRequestHeader("Content-Type", "application/json");
-      request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + chunk.byteLength}/${file.size}`);
+        request.onreadystatechange = () => {
+          if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+            uploadProgress += chunk.byteLength;
+            this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
+          }
+        };
 
-      request.onreadystatechange = () => {
-        if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
-          uploadProgress += chunk.byteLength;
-          this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
-        }
-      };
+        const view = new Uint8Array(chunk, 0, chunk.byteLength);
+        request.send(view);
+      });
+    }
+    // encryptFile(this.key, nonce, file, (error, chunk, offset) => {
+    //   if (error != null || chunk === null) {
+    //     // TODO: handle
+    //     return;
+    //   }
 
-      const view = new Uint8Array(chunk, 0, chunk.byteLength);
-      request.send(view);
+    //   encryptionProgress += chunk.byteLength;
+    //   this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
 
-      // TODO: Handle errors
-    });
+
+
+    //   // TODO: Handle errors
+    // });
   }
 
   handleMessage(event: MessageEvent) {

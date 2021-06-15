@@ -13,14 +13,6 @@ export function generateKey(): ArrayBuffer {
   return generateBytes(32);
 }
 
-/**
- * Generate a 96-bit securely random nonce.
- * @returns 12 bytes ArrayBuffer.
- */
-export function generateNonce(): ArrayBuffer {
-  return generateBytes(12);
-}
-
 // Likely only works for little endian systems
 export function bufferToHex(buffer: ArrayBuffer): string {
   const view = new Uint8Array(buffer);
@@ -34,4 +26,15 @@ export function hexToBuffer(hex: string): ArrayBuffer {
   for (let i = 0; i < hex.length / 2; i++)
     view[i] = Number.parseInt(hex.substr(i * 2, 2), 16);
   return buffer;
+}
+
+export function hexToCryptoKey(hex: string): Promise<CryptoKey> {
+  const keyData = hexToBuffer(hex);
+  return crypto.subtle.importKey(
+    "raw",
+    keyData,
+    "AES-GCM",
+    false,
+    ["encrypt", "decrypt"],
+  );
 }
