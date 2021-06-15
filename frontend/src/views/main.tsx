@@ -99,6 +99,9 @@ class MainView extends React.Component<WrappedComponentProps, MainViewState> {
     const {intl} = this.props;
     const archives = this.state.archives.map(archive => <article key={archive.id}>
       <h3>{archive.name}</h3>
+      <p>{`${archive.files.length}/${archive.maximumFileCount} files`}</p>
+      <p>{`${archive.files.reduce((size, file) => size + file.size, 0)}/${archive.maximumSize} size`}</p>
+      <p>{`${archive.maximumFileSize} maximum file size`}</p>
       <ul>
         {archive.files.map(file => <li key={file.id}>
           <FileIcon />
