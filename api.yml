@@ -386,9 +386,6 @@ components:
         mime:
           type: string
           description: The MIME type of the file.
-        nonce:
-          type: string
-          description: Hex-encoded nonce used for encryption.
 
     FileResponse:
       type: object
@@ -411,9 +408,6 @@ components:
         mime:
           type: string
           description: The MIME type of the file.
-        nonce:
-          type: string
-          description: Hex-encoded nonce used for encryption.
 
     FilesResponse:
       type: object

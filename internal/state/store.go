@@ -7,7 +7,6 @@ type File interface {
 	LastModified() int64
 	Size() int
 	Mime() string
-	Nonce() string
 	Created() int64
 }
 
@@ -41,7 +40,7 @@ type Archive interface {
 	// CreateToken creates a token for an archive
 	CreateToken(lifetime int) (ArchiveToken, string, error)
 	// CreateFile creates a file in an archive
-	CreateFile(name string, lastModified int64, size int, mime string, nonce string) (File, error)
+	CreateFile(name string, lastModified int64, size int, mime string) (File, error)
 	DeleteFile(id string) (bool, error)
 }
 

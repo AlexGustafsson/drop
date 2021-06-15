@@ -80,7 +80,7 @@ func decryptCommand(context *cli.Context) error {
 		return fmt.Errorf("The specified archive does not exist")
 	}
 
-	file, fileExists, err := archive.File(fileId)
+	_, fileExists, err := archive.File(fileId)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,8 @@ func decryptCommand(context *cli.Context) error {
 		return fmt.Errorf("The specified file does not exists")
 	}
 
-	nonce := file.Nonce()
+	// TODO: Remove
+	nonce := ""
 	nonceBytes, err := hex.DecodeString(nonce)
 	if err != nil {
 		return err

@@ -16,7 +16,6 @@ type FileResponse struct {
 	LastModified int64  `json:"lastModified"`
 	Size         int    `json:"size"`
 	Mime         string `json:"mime"`
-	Nonce        string `json:"nonce"`
 }
 
 type FileListResponse struct {
@@ -28,7 +27,6 @@ type FileCreateRequest struct {
 	LastModified int64  `json:"lastModified"`
 	Size         int    `json:"size"`
 	Mime         string `json:"mime"`
-	Nonce        string `json:"nonce"`
 }
 
 func (server *Server) handleFileList(ctx *wrappers.Context) error {
@@ -56,7 +54,6 @@ func (server *Server) handleFileList(ctx *wrappers.Context) error {
 			LastModified: file.LastModified(),
 			Size:         file.Size(),
 			Mime:         file.Mime(),
-			Nonce:        file.Nonce(),
 		})
 	}
 
@@ -90,7 +87,6 @@ func (server *Server) handleFileCreate(ctx *wrappers.Context) error {
 		request.LastModified,
 		request.Size,
 		request.Mime,
-		request.Nonce,
 	)
 	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
@@ -104,7 +100,6 @@ func (server *Server) handleFileCreate(ctx *wrappers.Context) error {
 		LastModified: file.LastModified(),
 		Size:         file.Size(),
 		Mime:         file.Mime(),
-		Nonce:        file.Nonce(),
 	}
 
 	err = ctx.JSON(response)
@@ -144,7 +139,6 @@ func (server *Server) handleFileGet(ctx *wrappers.Context) error {
 		LastModified: file.LastModified(),
 		Size:         file.Size(),
 		Mime:         file.Mime(),
-		Nonce:        file.Nonce(),
 	}
 
 	err = ctx.JSON(response)
