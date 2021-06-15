@@ -53,6 +53,10 @@ func (server *Server) Start(address string, port uint16) error {
 	app.Post("/api/v1/archives/:archiveId/files/:fileId/content", handle(server.handleFileUpload))
 
 	app.Static("/", server.frontend)
+	app.Get("/api/*", func(ctx *fiber.Ctx) error {
+		ctx.Status(fiber.StatusNotFound).SendString(NotFoundError)
+		return nil
+	})
 	app.Get("*", func(ctx *fiber.Ctx) error {
 		return ctx.SendFile(fmt.Sprintf("%s/index.html", server.frontend))
 	})
