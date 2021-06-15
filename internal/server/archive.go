@@ -6,12 +6,13 @@ import (
 )
 
 type ArchiveResponse struct {
-	Id               string `json:"id"`
-	Created          int64  `json:"created"`
-	Name             string `json:"name"`
-	MaximumFileCount int    `json:"maximumFileCount"`
-	MaximumFileSize  int    `json:"maximumFileSize"`
-	MaximumSize      int    `json:"maximumSize"`
+	Id               string         `json:"id"`
+	Created          int64          `json:"created"`
+	Name             string         `json:"name"`
+	MaximumFileCount int            `json:"maximumFileCount"`
+	MaximumFileSize  int            `json:"maximumFileSize"`
+	MaximumSize      int            `json:"maximumSize"`
+	Files            []FileResponse `json:"files"`
 }
 
 type ArchiveListResponse struct {
@@ -38,12 +39,31 @@ func (server *Server) handleArchiveList(ctx *wrappers.Context) error {
 
 	response := ArchiveListResponse{}
 	for _, archive := range archives {
+		// TODO: Make parallel or handle in another way (always fetch files etc.)
+		// TODO: Cleanup
+		files, err := archive.Files()
+		if err != nil {
+			ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+			return err
+		}
+		filesResponse := make([]FileResponse, len(files))
+		for i, file := range files {
+			filesResponse[i] = FileResponse{
+				Id:           file.Id(),
+				Created:      file.Created(),
+				Name:         file.Name(),
+				LastModified: file.LastModified(),
+				Size:         file.Size(),
+				Mime:         file.Mime(),
+			}
+		}
 		response.Archives = append(response.Archives, ArchiveResponse{
 			Id:               archive.Id(),
 			Name:             archive.Name(),
 			MaximumFileCount: archive.MaximumFileCount(),
 			MaximumFileSize:  archive.MaximumFileSize(),
 			MaximumSize:      archive.MaximumSize(),
+			Files:            filesResponse,
 		})
 	}
 

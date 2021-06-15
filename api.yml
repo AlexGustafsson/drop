@@ -417,6 +417,11 @@ components:
         maximumSize:
           type: number
           description: The total maximum size of the uploaded files. use 0 to allow any size.
+        files:
+          type: array
+          description: The files stored in the archive.
+          items:
+            $ref: "#/components/schemas/FileResponse"
 
     ArchivesResponse:
       type: object
