@@ -40,6 +40,9 @@ export interface ArchiveResponse {
 
   /** The total maximum size of the uploaded files. use 0 to allow any size. */
   maximumSize?: number;
+
+  /** The files stored in the archive. */
+  files?: FileResponse[];
 }
 
 export interface ArchivesResponse {
