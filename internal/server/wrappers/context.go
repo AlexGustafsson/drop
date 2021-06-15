@@ -82,12 +82,11 @@ func (ctx *Context) parseArchiveToken(bearerToken string) error {
 }
 
 func (ctx *Context) Parse() error {
-	bearerToken := ctx.Get("Authorization")
-	bearerToken = strings.TrimPrefix(bearerToken, "Bearer ")
-
-	if bearerToken != "" {
-		tokenType, err := auth.ExtractTokenType(bearerToken)
-		log.Debugf("Token type: %d", tokenType)
+	authorizationHeader := ctx.Get("Authorization")
+	if authorizationHeader != "" {
+		bearerToken := strings.TrimPrefix(authorizationHeader, "Bearer ")
+		tokenType, _ := auth.ExtractTokenType(bearerToken)
+		var err error
 		switch tokenType {
 		case auth.AdminTokenType:
 			err = ctx.parseAdminToken(bearerToken)
@@ -99,6 +98,7 @@ func (ctx *Context) Parse() error {
 		}
 
 		if err != nil {
+			ctx.Status(fiber.StatusForbidden).SendString(ForbiddenError)
 			return err
 		}
 	}
