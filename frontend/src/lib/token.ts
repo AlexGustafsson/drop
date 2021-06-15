@@ -25,6 +25,7 @@ export class UploadToken extends Token {
     public readonly maximumFileSize: number,
     public readonly maximumSize: number,
     public readonly archiveId: string,
+    public readonly archiveName: string,
   ) {
     super(raw, expiresAt, id, issuer);
   }
@@ -44,7 +45,8 @@ export class UploadToken extends Token {
       claims["mfc"] || 0,
       claims["mfs"] || 0,
       claims["ms"] || 0,
-      claims["archiveId"],
+      claims["ari"],
+      claims["arn"],
     )
   }
 }

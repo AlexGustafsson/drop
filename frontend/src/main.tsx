@@ -7,7 +7,7 @@ import { translationsForLanguage } from "./i18n";
 import App from "./app";
 
 import "./main.css";
-import { AdminToken } from "./lib/token";
+import { AdminToken, parseFragments, UploadToken } from "./lib/token";
 import { auth } from "./lib/auth";
 import api from "./lib/api";
 
@@ -32,13 +32,27 @@ async function main() {
   if (storedAdminToken !== null) {
     try {
       const adminToken = AdminToken.parse(storedAdminToken);
-      api.setSecurityData({token: adminToken.toString()});
-      if (adminToken.isValid())
+      if (adminToken.isValid()) {
         auth.adminToken = adminToken;
-      else
+        api.setSecurityData({ token: adminToken.toString() });
+      } else {
         localStorage.removeItem("token");
+      }
     } catch (error) {
       localStorage.removeItem("token");
+    }
+  }
+
+  const fragments = parseFragments();
+  if (fragments.token) {
+    try {
+      const uploadToken = UploadToken.parse(fragments.token);
+      if (uploadToken.isValid()) {
+        auth.uploadToken = uploadToken;
+        api.setSecurityData({ token: uploadToken.toString() });
+      }
+    } catch (error) {
+
     }
   }
 
