@@ -23,6 +23,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TokensResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "500":
+          $ref: "#/components/errors/500"
   /admin/tokens/{tokenId}:
     get:
       summary: Retrieve an admin token.
@@ -37,6 +41,12 @@ paths:
           content:
             application/json:
               $ref: "#/components/schemas/TokenResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     delete:
       summary: Delete a token for an archive.
       tags:
@@ -48,6 +58,12 @@ paths:
       respones:
         "200":
           description: Deleted
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
 
   /archives:
     get:
@@ -62,6 +78,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ArchivesResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     post:
       summary: Create an archive.
       tags:
@@ -81,6 +103,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ArchiveResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
   /archives/{archiveId}:
     get:
       summary: Retrieve an archive.
@@ -94,6 +122,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ArchiveResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     delete:
       summary: Delete an archive.
       tags:
@@ -103,8 +137,12 @@ paths:
       responses:
         "200":
           description: Deleted
+        "403":
+          $ref: "#/components/errors/403"
         "404":
-          description: Not found
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
 
   /archives/{archiveId}/tokens:
     get:
@@ -121,6 +159,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TokensResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     post:
       summary: Create a token for an archive.
       tags:
@@ -142,8 +186,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TokenResponse"
+        "403":
+          $ref: "#/components/errors/403"
         "404":
-          description: Not found
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
   /archives/{archiveId}/tokens/{tokenId}:
     get:
       summary: Retrieve a token for an archive.
@@ -158,6 +206,12 @@ paths:
           content:
             application/json:
               $ref: "#/components/schemas/TokenResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     delete:
       summary: Delete a token for an archive.
       tags:
@@ -169,6 +223,10 @@ paths:
       respones:
         "200":
           description: Deleted
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
 
   /archives/{archiveId}/files:
     get:
@@ -184,8 +242,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FilesResponse"
+        "403":
+          $ref: "#/components/errors/403"
         "404":
-          description: Not found
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     post:
       summary: Create a file.
       tags:
@@ -211,6 +273,8 @@ paths:
             description: Forbidden
           "404":
             description: Not found
+        "500":
+          $ref: "#/components/errors/500"
   /archives/{archiveId}/files/{fileId}:
     get:
       summary: Retrieve a file.
@@ -227,6 +291,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FileResponse"
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     delete:
       summary: Delete a file.
       tags:
@@ -239,6 +309,12 @@ paths:
       responses:
         "200":
           description: Deleted
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
   /archives/{archiveId}/files/{fileId}/content:
     get:
       summary: Download bytes of a file.
@@ -256,6 +332,12 @@ paths:
               schema:
                 type: string
                 format: binary
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
     post:
       summary: Upload bytes of a file.
       tags:
@@ -280,6 +362,12 @@ paths:
       responses:
         "201":
           description: Created
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
 
 tags:
   - name: Archives
@@ -417,6 +505,12 @@ components:
           items:
             $ref: "#/components/schemas/FileResponse"
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+
   parameters:
     ArchiveId:
       in: path
@@ -433,6 +527,26 @@ components:
         type: string
       required: true
       description: The id of the target file.
+
+  errors:
+    "403":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    "404":
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    "500":
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
 
   securitySchemes:
     ArchiveAuth:

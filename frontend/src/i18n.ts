@@ -7,11 +7,14 @@ export const English = {
 
   "actions.take-me-home": "Take me home",
   "actions.create": "Create",
+  "actions.login": "Login",
 
   "archive-name": "Archive name",
   "max-size": "Maximum size",
   "max-file-size": "Maximum file size",
   "max-file-count": "Maximum file count",
+  "welcome": "Welcome",
+  "authenticate": "Authenticate yourself to continue",
 };
 
 export const Swedish = {
@@ -23,11 +26,14 @@ export const Swedish = {
 
   "actions.take-me-home": "Ta mig hem",
   "actions.create": "Skapa",
+  "actions.login": "Logga in",
 
   "archive-name": "Arkivnamn",
   "max-size": "Maximal storlek",
   "max-file-size": "Maximal filstorlek",
   "max-file-count": "Maximalt antal filer",
+  "welcome": "Välkommen",
+  "authenticate": "Logga in för att fortsätta",
 };
 
 export function translationsForLanguage(language: string) {

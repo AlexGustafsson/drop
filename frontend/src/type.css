@@ -60,11 +60,16 @@ button.primary {
   color: white;
 }
 
-input[type="text"], input[type="number"] {
+input[type="text"], input[type="number"], input[type="password"] {
   outline: none;
   border: none;
   padding: 5px;
   background: none;
   border-bottom: 1px solid black;
   margin: 5px 0;
+  font-size: 12px;
+}
+
+input[type="text"].invalid, input[type="number"].invalid, input[type="password"].invalid {
+  background-color: rgba(255, 0, 0, 0.2);
 }

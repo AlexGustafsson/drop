@@ -30,7 +30,7 @@ export default ({ command, mode }) => {
       svg(),
     ],
     define: {
-      "DROP_API_ROOT": mode === "development" ? "'http://localhost:8080'" : "''",
+      "DROP_API_ROOT": mode === "development" ? "'http://localhost:8080/api/v1'" : "'/api/v1'",
     },
   };
 

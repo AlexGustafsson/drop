@@ -2,6 +2,9 @@ import React from "react";
 import type { WrappedComponentProps } from "react-intl";
 import { injectIntl, FormattedMessage } from "react-intl";
 
+import api from "../lib/api";
+import { ArchiveResponse, FileResponse } from "drop-api";
+
 import {humanReadableBytes} from "../lib/utils";
 import Fab from "../components/fab";
 import { SVG as IonShare } from "../assets/ion-share.svg";
@@ -12,40 +15,15 @@ import Modal from "../components/modal";
 
 import "./main.css";
 
-type ArchiveFile = {
-  name: string,
-  mime: string,
-  size: number,
-};
-
-type Archive = {
-  name: string,
-  files: ArchiveFile[],
-};
-
 type MainViewState = {
   showModal: boolean,
-  archives: Archive[],
+  archives: ArchiveResponse[],
 };
 
 class MainView extends React.Component<WrappedComponentProps, MainViewState> {
   state: MainViewState = {
     showModal: false,
-    archives: [{
-      name: "test",
-      files: [
-        {
-          name: "test file",
-          mime: "application/pdf",
-          size: 1204125,
-        },
-        {
-          name: "test file",
-          mime: "application/pdf",
-          size: 1204125,
-        },
-      ]
-    }]
+    archives: [],
   };
 
   constructor(props: WrappedComponentProps) {
@@ -60,16 +38,27 @@ class MainView extends React.Component<WrappedComponentProps, MainViewState> {
     });
   }
 
+  async componentDidMount() {
+    try {
+      const result = await api.archives.archivesList()
+      this.setState({
+        archives: result.data.archives!,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   render() {
     const {intl} = this.props;
-    const archives = this.state.archives.map(archive => <article>
+    const archives = this.state.archives.map(archive => <article key={archive.id}>
       <h3>{archive.name}</h3>
       <ul>
-        {archive.files.map(file => <li>
+        {/* {archive.files.map(file => <li>
           <FileIcon />
           <p>{file.name}</p>
           <p className="bubble">{humanReadableBytes(file.size)}</p>
-        </li>)}
+        </li>)} */}
       </ul>
     </article>);
 
