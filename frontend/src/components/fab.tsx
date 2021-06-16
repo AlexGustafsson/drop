@@ -4,12 +4,13 @@ import "./fab.css";
 
 type FabProps = {
   onClick: React.MouseEventHandler<HTMLDivElement>,
-};
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export default class Fab extends React.Component<FabProps> {
   render() {
-    return <div className="fab" onClick={this.props.onClick}>
-      {this.props.children}
+    const {onClick, className, children, ...rest} = this.props;
+    return <div {...rest} className={"fab " + className} onClick={onClick}>
+      {children}
     </div>
   }
 }

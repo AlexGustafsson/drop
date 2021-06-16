@@ -4,9 +4,9 @@ import { FormattedMessage } from "react-intl";
 
 import UndrawAuthentication from "../assets/undraw-authentication.svg";
 
-import "./login.css"
 import { auth } from "../lib/auth";
 import { AdminToken } from "../lib/token";
+import api from "../lib/api";
 
 type LoginViewState = {
   token: string,
@@ -45,9 +45,11 @@ class LoginView extends React.Component<RouteComponentProps, LoginViewState> {
   }
 
   private login() {
+    // TODO: provide helper in the auth lib
     try {
       const token = AdminToken.parse(this.state.token);
       auth.adminToken = token;
+      api.setSecurityData({ token: token.toString() });
       if (this.state.persist)
         localStorage.setItem("token", this.state.token);
       this.props.history.replace("/");
@@ -57,12 +59,14 @@ class LoginView extends React.Component<RouteComponentProps, LoginViewState> {
   }
 
   render() {
-    const inputClass = this.state.invalidToken ? "invalid" : "";
-    return <main className="page login-page centered">
-      <img src={UndrawAuthentication} />
-      <h1><FormattedMessage id="welcome" /></h1>
-      <h2><FormattedMessage id="authenticate" /></h2>
-      <input type="password" className={inputClass} placeholder="token" onKeyUp={this.onTokenKeyUp} onChange={this.onTokenChange} />
+    const inputClass = this.state.invalidToken ? "bg-red-200" : "bg-white";
+    return <main className="flex flex-col flex-1 place-content-center items-center">
+      <img src={UndrawAuthentication} className="h-96 w-96" />
+      <h1 className="text-xl text-gray-800"><FormattedMessage id="welcome" /></h1>
+      <h2 className="text-lg text-gray-500"><FormattedMessage id="authenticate" /></h2>
+      {/* The username field is only there so that browsers pick up on autocomplete */}
+      <input type="username" hidden defaultValue="Drop" />
+      <input type="password" className={"rounded-md " + inputClass} placeholder="Token" onKeyUp={this.onTokenKeyUp} onChange={this.onTokenChange} />
       <input type="checkbox" onChange={this.onPersistChanged} />
       <button className="primary" onClick={this.login}><FormattedMessage id="actions.login" /></button>
     </main>

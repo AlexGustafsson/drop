@@ -1,30 +1,73 @@
-@import "./type.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-html {
-  background-color: #F4F8FE;
+@layer base {
+  html {
+    @apply bg-gray-50 antialiased;
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  body {
+    touch-actions: none;
+  }
+
+  #app {
+    @apply min-h-screen flex justify-center overflow-x-hidden;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    appearance: textfield;
+  }
+
+  input {
+    @apply outline-none my-2 text-sm p-1;
+  }
+
+  button {
+    @apply p-2 my-2 rounded-md transition-shadow text-sm;
+  }
+
+  button:hover {
+    @apply shadow-xl;
+    /* box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 7px 6px rgba(0,0,0,0.10); */
+  }
+
+  button:active {
+    box-shadow: none;
+  }
+
+  button.primary {
+    @apply bg-primary text-white;
+  }
 }
 
-html, body {
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
+@layer components {
+  .modal {
+    @apply fixed inset-0 backdrop-filter backdrop-blur-lg bg-black bg-opacity-10;
+  }
 }
 
-body {
-  min-height: 100vh;
-  font-family: system, -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
-}
+@layer utilities {
+  .animate-move-in {
+    opacity: 0;
+    animation: move-in 0.5s forwards;
+  }
 
-.page {
-  min-height: 100vh;
-  padding: 15px;
-  box-sizing: border-box;
-}
+  .animate-fade-in {
+    opacity: 0;
+    animation: fade-in 0.5s forwards;
+  }
 
-.page.centered {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  .animation-delay-2 {animation-delay: 200ms; }
+  .animation-delay-4 {animation-delay: 400ms; }
+  .animation-delay-6 {animation-delay: 600ms; }
+  .animation-delay-8 {animation-delay: 800ms; }
+  .animation-delay-10 {animation-delay: 1000ms; }
 }

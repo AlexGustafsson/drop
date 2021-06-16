@@ -2,8 +2,6 @@ import React from "react";
 
 import {SVG as UploadIcon} from "../assets/upload-icon.svg";
 
-import "./dropper.css";
-
 type DropperProps = {
   maximumFileCount: number,
   maximumFileSize: number,
@@ -26,9 +24,9 @@ export default class Dropper extends React.Component<DropperProps> {
   }
 
   render() {
-    return <div className="dropper" onDrop={this.handleFileDrop} onDragOver={this.handleFileDragOver} onClick={this.handleClick}>
-      <UploadIcon className="icon" />
-      <p>Drag & Drop your files here</p>
+    return <div className="flex flex-col items-center justify-content-center bg-gray-50 rounded-lg border-2 border-dashed border-primary border-primary-light py-7 my-5" onDrop={this.handleFileDrop} onDragOver={this.handleFileDragOver} onClick={this.handleClick}>
+      <UploadIcon className="w-24 text-gray-400" />
+      <p className="text-gray-400" >Drag & Drop your files here</p>
     </div>
   }
 

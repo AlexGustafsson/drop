@@ -5,8 +5,6 @@ import DroppedFile from "../components/dropped-file";
 import { auth } from "../lib/auth";
 import FileUploader from "../lib/worker/file-uploader";
 
-import "./upload.css";
-
 type FileUpload = {
   file: File,
   internalFileId: string,
@@ -71,19 +69,17 @@ export default class UploadView extends React.Component<{}, UploadViewState> {
       return <DroppedFile key={file.internalFileId} title={file.file.name} uploadProgress={file.uploadProgress} encryptionProgress={file.encryptionProgress} />
     });
 
-    // Allow 3.5 dropped files to be shown (makes it easier to see that the
-    // content may be scrolled once it surpasses four files
-    const height = 400 + 70 * Math.min(this.state.files.length, 3.5);
-
-    return <main className="page upload-page centered authorized" style={{height: height}}>
-      <h1>Upload your files</h1>
-      <h2>Any files are supported, but large files may take longer to process</h2>
-      <Dropper onChange={this.filesChanged} maximumFileCount={this.maximumFileCount} maximumFileSize={this.maximumFileSize} maximumSize={this.maximumSize} />
-      <div className="file-scroller">
-        <ul>
-          {files}
-        </ul>
-      </div>
+    return <main className="flex flex-col flex-1 place-content-center items-center">
+      <article className="bg-white py-10 px-8 rounded-xl">
+        <h1 className="text-xl text-gray-800 text-center">Upload your files</h1>
+        <h2 className="text-lg text-gray-500 text-center">Any files are supported, but large files may take longer to process</h2>
+        <Dropper onChange={this.filesChanged} maximumFileCount={this.maximumFileCount} maximumFileSize={this.maximumFileSize} maximumSize={this.maximumSize} />
+        <div className="max-h-60 overflow-y-scroll">
+          <ul>
+            {files}
+          </ul>
+        </div>
+      </article>
     </main>
   }
 }

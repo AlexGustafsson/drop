@@ -1,9 +1,0 @@
-.login-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.login-page img {
-  width: 320px;
-}
