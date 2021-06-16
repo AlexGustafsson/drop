@@ -7,9 +7,8 @@ import { translationsForLanguage } from "./i18n";
 import App from "./app";
 
 import "./main.css";
-import { AdminToken, parseFragments, UploadToken } from "./lib/token";
-import { auth } from "./lib/auth";
-import api from "./lib/api";
+import { AdminToken, UploadToken } from "./lib/token";
+import { useAuth } from "./lib/auth";
 
 function disableBodyDragAndDrop() {
   document.body.addEventListener("dragover", (event: DragEvent) => {
@@ -25,36 +24,8 @@ async function main() {
   disableBodyDragAndDrop();
   const locale = navigator.language;
   const messages = translationsForLanguage(locale);
-
-  api.setSecurityData({token: null});
-
-  const storedAdminToken = localStorage.getItem("token");
-  if (storedAdminToken !== null) {
-    try {
-      const adminToken = AdminToken.parse(storedAdminToken);
-      if (adminToken.isValid()) {
-        auth.adminToken = adminToken;
-        api.setSecurityData({ token: adminToken.toString() });
-      } else {
-        localStorage.removeItem("token");
-      }
-    } catch (error) {
-      localStorage.removeItem("token");
-    }
-  }
-
-  const fragments = parseFragments();
-  if (fragments.token) {
-    try {
-      const uploadToken = UploadToken.parse(fragments.token);
-      if (uploadToken.isValid()) {
-        auth.uploadToken = uploadToken;
-        api.setSecurityData({ token: uploadToken.toString() });
-      }
-    } catch (error) {
-
-    }
-  }
+  const auth = useAuth();
+  auth.initialize();
 
   ReactDOM.render(
     <React.StrictMode>

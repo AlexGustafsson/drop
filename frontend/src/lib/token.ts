@@ -76,13 +76,3 @@ export class AdminToken extends Token {
     )
   }
 }
-
-export function parseFragments() {
-  const fragments = location.hash.substr(1).split("&").reduce((result: { [key: string]: string }, fragment) => {
-    const [key, value] = fragment.split("=");
-    result[key] = value;
-    return result;
-  }, {});
-
-  return { token: fragments["token"] || null, secret: fragments["secret"] || null };
-}

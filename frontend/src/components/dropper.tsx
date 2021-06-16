@@ -24,7 +24,7 @@ export default class Dropper extends React.Component<DropperProps> {
   }
 
   render() {
-    return <div className="flex flex-col items-center justify-content-center bg-gray-50 rounded-lg border-2 border-dashed border-primary border-primary-light py-7 my-5" onDrop={this.handleFileDrop} onDragOver={this.handleFileDragOver} onClick={this.handleClick}>
+    return <div className="flex flex-col items-center justify-content-center bg-gray-50 rounded-lg border-2 border-dashed border-primary border-primary-light py-7 my-5 cursor-pointer" onDrop={this.handleFileDrop} onDragOver={this.handleFileDragOver} onClick={this.handleClick}>
       <UploadIcon className="w-24 text-gray-400" />
       <p className="text-gray-400" >Drag & Drop your files here</p>
     </div>

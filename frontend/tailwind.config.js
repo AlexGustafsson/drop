@@ -23,16 +23,6 @@ module.exports = {
         DEFAULT: "#f9b649",
       },
     },
-    keyframes: {
-      "move-in": {
-        "0%": {opacity: 0, transform: "translateY(25%)"},
-        "100%": {opacity: 1, transform: "translateY(0)"},
-      },
-      "fade-in": {
-        "0%": { opacity: 0 },
-        "100%": { opacity: 1 },
-      },
-    },
     extend: {
       gridTemplateColumns: {
         "triple": "3.5rem 1fr 3.5rem",
