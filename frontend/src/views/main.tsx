@@ -11,10 +11,12 @@ import UndrawEmpty from "../assets/undraw-empty.svg";
 
 import Modal from "../components/modal";
 import { ArchiveResponse } from "drop-client";
+import { useSnackbars } from "../components/snackbar";
 
 const MainView = (): JSX.Element => {
   const intl = useIntl();
   const api = useApi();
+  const snackbars = useSnackbars();
 
   const [showModal, setShowModal] = useState(false);
   const [archives, setArchives] = useState<ArchiveResponse[]>([]);
@@ -26,7 +28,12 @@ const MainView = (): JSX.Element => {
   useEffect(() => {
     api.archives.archivesList()
       .then(result => setArchives(result.data.archives))
-      .catch(error => console.error(error));
+      .catch(error => {
+        if (error.error)
+          snackbars.show({title: "An error occured", body: error.error.error, type: "error"});
+        else
+          snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      });
   }, []);
 
   function toggleModal() {
@@ -44,7 +51,10 @@ const MainView = (): JSX.Element => {
       setArchives([...archives, result.data]);
       toggleModal();
     } catch (error) {
-      console.error(error);
+      if (error.error)
+        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
+      else
+        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
     }
   }
 

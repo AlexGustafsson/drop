@@ -10,6 +10,8 @@ import "./main.css";
 import { AdminToken, UploadToken } from "./lib/token";
 import { useAuth } from "./lib/auth";
 
+import { SnackbarContainer } from "./components/snackbar";
+
 function disableBodyDragAndDrop() {
   document.body.addEventListener("dragover", (event: DragEvent) => {
     event.preventDefault();
@@ -30,7 +32,9 @@ async function main() {
   ReactDOM.render(
     <React.StrictMode>
       <IntlProvider defaultLocale="en-us" locale={locale} messages={messages}>
-        <App />
+        {<SnackbarContainer>
+          <App />
+        </SnackbarContainer>}
       </IntlProvider>
     </React.StrictMode>,
     document.getElementById("app"),
