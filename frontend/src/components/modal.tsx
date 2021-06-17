@@ -22,7 +22,7 @@ export default class Modal extends React.Component<ModalProps> {
 
   render() {
     const {className, onClick, children, ...rest} = this.props;
-    return <div {...rest} className={"modal " + className} onClick = { this.handleClick }>
+    return <div {...rest} className={"modal " + className} onClick={ this.handleClick }>
     { children }
     </div >
   }
