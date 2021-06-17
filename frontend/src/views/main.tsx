@@ -25,7 +25,7 @@ const MainView = (): JSX.Element => {
 
   useEffect(() => {
     api.archives.archivesList()
-      .then(result => setArchives(result.data.archives!))
+      .then(result => setArchives(result.data.archives))
       .catch(error => console.error(error));
   }, []);
 
@@ -52,7 +52,7 @@ const MainView = (): JSX.Element => {
     <h2 className="text-lg">{archive.name}</h2>
     <div className="grid grid-cols-3 my-2 w-full">
       <p className="text-center text-sm text-gray-500">{`${archive.files.length}/${archive.maximumFileCount}`}<br />files</p>
-      <p className="text-center text-sm text-gray-500">{`${archive.files.reduce((size: number, file: File) => size + file.size, 0)}/${archive.maximumSize}`}<br />size</p>
+      <p className="text-center text-sm text-gray-500">{`${archive.files.reduce((size, file) => size + file.size, 0)}/${archive.maximumSize}`}<br />size</p>
       <p className="text-center text-sm text-gray-500">{`${archive.maximumFileSize}`}<br />max file size</p>
     </div>
     <ul className="w-full">
