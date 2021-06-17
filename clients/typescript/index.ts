@@ -11,103 +11,112 @@
 
 export interface ArchiveRequest {
   /** Name of the archive. */
-  name?: string;
+  name: string;
 
-  /** The maximum number of files allowed to be uploaded. Use 0 to allow any count. */
-  maximumFileCount?: number;
+  /**
+   * The maximum number of files allowed to be uploaded. Use 0 to allow any count.
+   * @min 0
+   */
+  maximumFileCount: number;
 
-  /** The maximum size of an uploaded file. Use 0 to allow any size. */
-  maximumFileSize?: number;
+  /**
+   * The maximum size of an uploaded file. Use 0 to allow any size.
+   * @min 0
+   */
+  maximumFileSize: number;
 
-  /** The total maximum size of the uploaded files. use 0 to allow any size. */
-  maximumSize?: number;
+  /**
+   * The total maximum size of the uploaded files. use 0 to allow any size.
+   * @min 0
+   */
+  maximumSize: number;
 }
 
 export interface ArchiveResponse {
-  id?: string;
+  id: string;
 
   /** The UTC timestamp at which the archive was created. */
-  created?: number;
+  created: number;
 
   /** Name of the archive. */
-  name?: string;
+  name: string;
 
   /** The maximum number of files allowed to be uploaded. Use 0 to allow any count. */
-  maximumFileCount?: number;
+  maximumFileCount: number;
 
   /** The maximum size of an uploaded file. Use 0 to allow any size. */
-  maximumFileSize?: number;
+  maximumFileSize: number;
 
   /** The total maximum size of the uploaded files. use 0 to allow any size. */
-  maximumSize?: number;
+  maximumSize: number;
 
   /** The files stored in the archive. */
-  files?: FileResponse[];
+  files: FileResponse[];
 }
 
 export interface ArchivesResponse {
-  archives?: ArchiveResponse[];
+  archives: ArchiveResponse[];
 }
 
 export interface TokenRequest {
   /** The number of seconds the token should be valid. */
-  lifetime?: number;
+  lifetime: number;
 }
 
 export interface TokenResponse {
-  id?: string;
+  id: string;
 
   /** The UTC timestamp at which the token was created. */
-  created?: number;
+  created: number;
 
   /** Token with upload access to the archive. */
-  token?: string;
+  token: string;
 }
 
 export interface TokensResponse {
-  tokens?: { id?: string; created?: number }[];
+  tokens: { id?: string; created?: number }[];
 }
 
 export interface FileRequest {
   /** Name of the file. */
-  name?: string;
+  name: string;
 
   /** The UTC timestamp when the file was last modified. */
-  lastModified?: number;
+  lastModified: number;
 
   /** Size in bytes. */
-  size?: number;
+  size: number;
 
   /** The MIME type of the file. */
-  mime?: string;
+  mime: string;
 }
 
 export interface FileResponse {
   /** The created file's id, used for the upload */
-  id?: string;
+  id: string;
 
   /** The UTC timestamp at which the file was created. */
-  created?: number;
+  created: number;
 
   /** Name of the file. */
-  name?: string;
+  name: string;
 
   /** The UTC timestamp when the file was last modified. */
-  lastModified?: number;
+  lastModified: number;
 
   /** Size in bytes. */
-  size?: number;
+  size: number;
 
   /** The MIME type of the file. */
-  mime?: string;
+  mime: string;
 }
 
 export interface FilesResponse {
-  files?: FileResponse[];
+  files: FileResponse[];
 }
 
 export interface ErrorResponse {
-  error?: string;
+  error: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;

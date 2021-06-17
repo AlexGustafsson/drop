@@ -383,22 +383,38 @@ components:
   schemas:
     ArchiveRequest:
       type: object
+      required:
+        - name
+        - maximumFileCount
+        - maximumFileSize
+        - maximumSize
       properties:
         name:
           type: string
           description: Name of the archive.
         maximumFileCount:
           type: number
+          minimum: 0
           description: The maximum number of files allowed to be uploaded. Use 0 to allow any count.
         maximumFileSize:
           type: number
+          minimum: 0
           description: The maximum size of an uploaded file. Use 0 to allow any size.
         maximumSize:
           type: number
+          minimum: 0
           description: The total maximum size of the uploaded files. use 0 to allow any size.
 
     ArchiveResponse:
       type: object
+      required:
+        - id
+        - created
+        - name
+        - maximumFileCount
+        - maximumFileSize
+        - maximumSize
+        - files
       properties:
         id:
           type: string
@@ -425,6 +441,8 @@ components:
 
     ArchivesResponse:
       type: object
+      required:
+        - archives
       properties:
         archives:
           type: array
@@ -433,6 +451,8 @@ components:
 
     TokenRequest:
       type: object
+      required:
+        - lifetime
       properties:
         lifetime:
           type: number
@@ -440,6 +460,10 @@ components:
 
     TokenResponse:
       type: object
+      required:
+        - id
+        - created
+        - token
       properties:
         id:
           type: string
@@ -452,6 +476,8 @@ components:
 
     TokensResponse:
       type: object
+      required:
+        - tokens
       properties:
         tokens:
           type: array
@@ -466,6 +492,11 @@ components:
 
     FileRequest:
       type: object
+      required:
+        - name
+        - lastModified
+        - size
+        - mime
       properties:
         name:
           type: string
@@ -482,6 +513,13 @@ components:
 
     FileResponse:
       type: object
+      required:
+        - id
+        - created
+        - name
+        - lastModified
+        - size
+        - mime
       properties:
         id:
           type: string
@@ -504,6 +542,8 @@ components:
 
     FilesResponse:
       type: object
+      required:
+        - files
       properties:
         files:
           type: array
@@ -512,6 +552,8 @@ components:
 
     ErrorResponse:
       type: object
+      required:
+        - error
       properties:
         error:
           type: string
