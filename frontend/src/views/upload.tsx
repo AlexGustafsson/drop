@@ -34,7 +34,6 @@ const UploadView = (): JSX.Element => {
         fileUploader?.upload(addedFiles[i]);
       }
       return newFiles;
-      // return addedFiles.map((file, i) => ({ file, internalFileId: i.toString(), uploadProgress: 0, encryptionProgress: 0 }));
     });
   }
 
