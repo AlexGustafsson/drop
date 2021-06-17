@@ -31,7 +31,7 @@
   }
 
   button {
-    @apply p-2 my-2 rounded-md transition-shadow text-sm;
+    @apply p-2 my-2 rounded-md transition-shadow text-sm select-none;
   }
 
   button:hover {
