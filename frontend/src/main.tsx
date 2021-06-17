@@ -32,9 +32,9 @@ async function main() {
   ReactDOM.render(
     <React.StrictMode>
       <IntlProvider defaultLocale="en-us" locale={locale} messages={messages}>
-        {<SnackbarContainer>
+        <SnackbarContainer>
           <App />
-        </SnackbarContainer>}
+        </SnackbarContainer>
       </IntlProvider>
     </React.StrictMode>,
     document.getElementById("app"),
