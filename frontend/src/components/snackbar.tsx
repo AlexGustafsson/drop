@@ -47,7 +47,7 @@ export const Snackbar = ({title, body, type, id}: SnackbarMessage): JSX.Element 
     background = "bg-red-400";
   else if (type === "warning")
     background = "bg-yellow-400";
-  return <div className={`animate-move-in relative flex flex-col justify-center rounded-md w-96 text-sm p-3 mb-2 overflow-hidden ${height} ${background}`}>
+  return <div className={`animate-move-in relative flex flex-col justify-center rounded-md w-96 text-sm p-3 mb-2 overflow-hidden pointer-events-auto ${height} ${background}`}>
     {title && <p className="text-white">{title}</p>}
     <p className="text-white text-opacity-80">{body}</p>
     <a className="absolute cursor-pointer right-3 text-white" onClick={() => snackbars.remove(id!)}>OK</a>
@@ -58,7 +58,7 @@ export const SnackbarContainer = ({ children }: HTMLAttributes<Provider<Snackbar
   const [snackbars, setSnackbars] = useState<SnackbarMessage[]>([]);
   const snackbarElements = snackbars.map(({id, ...props}) => <Snackbar key={id} id={id} {...props}></Snackbar>);
   return <SnackbarContext.Provider value={{snackbars, setSnackbars}}>
-    <div className="fixed flex justify-center inset-x-0 bottom-0 flex z-20">
+    <div className="fixed flex justify-center inset-x-0 bottom-0 flex z-20 pointer-events-none">
       <div className="container flex flex-col items-center">
         {snackbarElements}
       </div>

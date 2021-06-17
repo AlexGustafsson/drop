@@ -88,7 +88,9 @@ const MainView = (): JSX.Element => {
         </main>
       </Modal>
     }
-    <Fab className="fixed bottom-10 right-10" onClick={toggleModal}><IonShare /></Fab>
+    <div className="fixed container bottom-0">
+      <Fab className="absolute bottom-10 right-10" onClick={toggleModal}><IonShare /></Fab>
+    </div>
     {archives.length === 0 && <div className="flex flex-col flex-1 place-content-center items-center">
       <img src={UndrawEmpty} className="h-96 w-96" />
       <h1 className="text-xl text-gray-800">Nothing to see here</h1>
