@@ -14,7 +14,7 @@ export default class DroppedFile extends React.Component<DroppedFileProps> {
       <FileIcon className="w-14 row-span-full animate-move-in animation-delay-2 text-primary" />
       <p className="col-start-2 animate-move-in animation-delay-4">{this.props.title}</p>
       <p className="col-start-3 animate-move-in text-right animation-delay-6">{Math.round(this.props.uploadProgress * 100)}%</p>
-      <div className="relaitve row-span-2 col-start-2 col-span-2 bg-gray-50 h-3 w-full rounded-md animate-fade-in animation-delay-8">
+      <div className="relative row-span-2 col-start-2 col-span-2 bg-gray-50 h-3 w-full rounded-md animate-fade-in animation-delay-8">
         <div className="absolute h-3 rounded-md bg-secondary transition-all" style={{ width: 0.5 * 100 }}></div>
         <div className="absolute h-3 rounded-md bg-primary transition-all" style={{width: 0.2 * 100}}></div>
       </div>
