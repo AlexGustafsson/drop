@@ -13,7 +13,7 @@
     "test": "mocha-vite-puppeteer"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@svgr/core": "^5.5.0",
     "@types/chai": "^4.2.18",
