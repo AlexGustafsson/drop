@@ -8,6 +8,7 @@ export const English = {
   "actions.take-me-home": "Take me home",
   "actions.create": "Create",
   "actions.login": "Login",
+  "actions.copy": "Copy and share this link",
 
   "archive-name": "Archive name",
   "max-size": "Maximum size",
@@ -27,6 +28,7 @@ export const Swedish = {
   "actions.take-me-home": "Ta mig hem",
   "actions.create": "Skapa",
   "actions.login": "Logga in",
+  "actions.copy": "Kopiera och dela denna länk",
 
   "archive-name": "Arkivnamn",
   "max-size": "Maximal storlek",

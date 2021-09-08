@@ -7,7 +7,6 @@ import { translationsForLanguage } from "./i18n";
 import App from "./app";
 
 import "./main.css";
-import { AdminToken, UploadToken } from "./lib/token";
 import { useAuth } from "./lib/auth";
 
 import { SnackbarContainer } from "./components/snackbar";
