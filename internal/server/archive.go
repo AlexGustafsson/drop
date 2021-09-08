@@ -37,7 +37,9 @@ func (server *Server) handleArchiveList(ctx *wrappers.Context) error {
 		return err
 	}
 
-	response := ArchiveListResponse{}
+	response := ArchiveListResponse{
+		Archives: make([]ArchiveResponse, 0),
+	}
 	for _, archive := range archives {
 		// TODO: Make parallel or handle in another way (always fetch files etc.)
 		// TODO: Cleanup
