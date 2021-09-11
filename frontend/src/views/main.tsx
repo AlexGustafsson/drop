@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useIntl, FormattedMessage } from "react-intl";
+import { useHistory } from "react-router";
 
 import {useApi} from "../lib/api";
 
@@ -7,11 +8,23 @@ import {humanReadableBytes} from "../lib/utils";
 import Fab from "../components/fab";
 import { SVG as IonShare } from "../assets/ion-share.svg";
 import { SVG as FileIcon } from "../assets/file-icon.svg";
+import { SVG as MoreIcon } from "../assets/ion-more.svg";
 import UndrawEmpty from "../assets/undraw-empty.svg";
+
+import {
+  Menu,
+  Item,
+  useContextMenu,
+  animation,
+  ItemParams
+} from "react-contexify";
+
+import "react-contexify/dist/ReactContexify.css";
 
 import Modal from "../components/modal";
 import { ArchiveResponse } from "drop-client";
 import { useSnackbars } from "../components/snackbar";
+import { Link } from "react-router-dom";
 
 const MainView = (): JSX.Element => {
   const intl = useIntl();
@@ -27,6 +40,16 @@ const MainView = (): JSX.Element => {
 
   const [showShareArchiveModal, setShowShareArchiveModal] = useState(false);
   const [archiveShareLink, setArchiveShareLink] = useState("");
+
+  const history = useHistory();
+
+  const archiveContextMenu = useContextMenu({
+    id: "archive-context-menu"
+  });
+
+  const fileContextMenu = useContextMenu({
+    id: "file-context-menu"
+  });
 
   useEffect(() => {
     api.archives.archivesList()
@@ -82,24 +105,35 @@ const MainView = (): JSX.Element => {
     }
   }
 
-  const archiveElements = archives.map(archive => <article key={archive.id} className="flex flex-col items-center bg-white rounded-xl p-5">
-    <h2 className="text-lg">{archive.name}</h2>
-    <div className="grid grid-cols-3 my-2 w-full">
-      <p className="text-center text-sm text-gray-500">{`${archive.files.length}/${archive.maximumFileCount || '∞'}`}<br />files</p>
-      <p className="text-center text-sm text-gray-500">{`${archive.files.reduce((size, file) => size + file.size, 0)}/${archive.maximumSize || '∞'}`}<br />size</p>
-      <p className="text-center text-sm text-gray-500">{`${archive.maximumFileSize || '∞'}`}<br />max file size</p>
-    </div>
-    <ul className="w-full">
-      {archive.files.map(file => <li key={file.id} className="grid grid-cols-3 my-2 items-center justify-items-center">
-        <FileIcon className="w-10 h-10 text-primary" />
-        <p>{file.name}</p>
-        <p className="">{humanReadableBytes(file.size)}</p>
-      </li>)}
-      <li><button className="primary" onClick={() => {createArchiveToken(archive.id, 100)}}>Share</button></li>
-    </ul>
-  </article>);
+  function showArchive({ props }: ItemParams<ArchiveResponse>) {
+    history.push(`/archives/${props?.id}`);
+  }
 
-  return <main className="container relative flex flex-col">
+  function shareArchive({ props }: ItemParams<ArchiveResponse>) {
+    setShowShareArchiveModal(true)
+  }
+
+  async function deleteArchive({props}: ItemParams<ArchiveResponse>) {
+    try {
+      await api.archives.archivesDelete(props!.id);
+      setArchives(archives.filter(x => x.id !== props!.id));
+    } catch (error) {
+      if (error.error)
+        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
+      else
+        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+    }
+  }
+
+  const archiveElements = archives.map(archive => <Link to="/archives/archive" key={archive.id}>
+    <div className="relative bg-white rounded-xl p-5">
+      <MoreIcon className="absolute w-6 text-gray-500 top-2 right-2 cursor-pointer" onClick={e => archiveContextMenu.show(e, {props: archive})} />
+      <FileIcon className="w-8 text-primary" />
+      <p className="text-lg text-gray">{archive.name}</p>
+    </div>
+  </Link>);
+
+  return <main className="container relative flex flex-col w-full">
     {
       showArchiveModal
       &&
@@ -122,16 +156,91 @@ const MainView = (): JSX.Element => {
         </main>
       </Modal>
     }
-    <div className="fixed container bottom-0">
-      <Fab className="absolute bottom-10 right-10" onClick={toggleCreateArchiveModal}><IonShare /></Fab>
-    </div>
+
     {archives.length === 0 && <div className="flex flex-col flex-1 place-content-center items-center">
       <img src={UndrawEmpty} className="h-96 w-96" />
       <h1 className="text-xl text-gray-800">Nothing to see here</h1>
       <h2 className="text-lg text-gray-500">There are no uploaded files yet</h2>
       <button className="primary" onClick={toggleCreateArchiveModal}>Create an archive</button>
     </div>}
-    <div className="grid grid-cols-3 gap-5 p-5">{archiveElements}</div>
+
+    <main className="mr-80 p-5">
+      <header className="flex place-content-between items-center mb-2">
+        <h1 className="text-lg text-gray-800">Recent Archives</h1>
+        <Link to="/archives" className="text-base text-primary">See all</Link>
+      </header>
+      <div className="grid grid-cols-3 gap-5">
+        {archiveElements}
+      </div>
+
+      <header className="flex place-content-between items-center mt-5 mb-2">
+        <h1 className="text-lg text-gray-800">Recent Files</h1>
+        <Link to="/files" className="text-base text-primary">See all</Link>
+      </header>
+      <div className="grid gap-y-2">
+        <div className="grid grid-cols-table-5 text-sm text-gray-500 p-2">
+          <p>Name</p>
+          <p>File Format</p>
+          <p>Uploaded</p>
+          <p>Size</p>
+        </div>
+        <div className="grid grid-cols-table-5 bg-white items-center p-2 rounded-xl">
+          <div className="flex flex-row items-center">
+            <FileIcon className="w-6 mr-2 text-primary" />
+            <p>The Design Guidelines</p>
+          </div>
+          <p>PDF</p>
+          <p>5 minutes ago</p>
+          <p>5 MB</p>
+          <MoreIcon className="w-6 text-gray-500 top-2 right-2 cursor-pointer" onClick={e => fileContextMenu.show(e, { props: {} })}  />
+        </div>
+      </div>
+    </main>
+
+    <aside className="fixed container right-0 top-0 bottom-0 p-2 pt-5 bg-white w-80 bg-white">
+      <ul className="flex flex-col items-center">
+        <li className="grid grid-cols-triple-lg items-center w-64 mb-2">
+          <FileIcon className="w-8 text-primary" />
+          <div className="flex-grow">
+            <p className="text-base text-gray-800">Images</p>
+            <p className="text-base text-gray-500">12 files</p>
+          </div>
+          <p className="text-lg text-primary">17.5 GB</p>
+        </li>
+        <li className="grid grid-cols-triple-lg items-center w-64 mb-2">
+          <FileIcon className="w-8 text-primary" />
+          <div>
+            <p className="text-base text-gray-800">Videos</p>
+            <p className="text-base text-gray-500">2 files</p>
+          </div>
+          <p className="text-lg text-primary">1.2 GB</p>
+        </li>
+        <li className="grid grid-cols-triple-lg items-center w-64 mb-2">
+          <FileIcon className="w-8 text-primary" />
+          <div>
+            <p className="text-base text-gray-800">Other</p>
+            <p className="text-base text-gray-500">100 files</p>
+          </div>
+          <p className="text-lg text-primary">12 MB</p>
+        </li>
+      </ul>
+    </aside>
+
+    <div className="fixed container bottom-0">
+      <Fab className="absolute bottom-10 right-10" onClick={toggleCreateArchiveModal}><IonShare /></Fab>
+    </div>
+
+    <Menu id="archive-context-menu" animation={false}>
+      <Item onClick={showArchive}>Show archive</Item>
+      <Item onClick={shareArchive}>Share</Item>
+      <Item className="danger" onClick={deleteArchive}>Delete</Item>
+    </Menu>
+
+    <Menu id="file-context-menu" animation={false}>
+      <Item>Download file</Item>
+      <Item>Show archive</Item>
+      <Item className="danger">Delete</Item>
+    </Menu>
   </main>
 };
 export default MainView;

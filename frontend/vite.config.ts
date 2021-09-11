@@ -31,6 +31,7 @@ export default ({ command, mode }) => {
     ],
     define: {
       "DROP_API_ROOT": mode === "development" ? "'http://localhost:8080/api/v1'" : "'/api/v1'",
+      'process.env': {},
     },
   };
 

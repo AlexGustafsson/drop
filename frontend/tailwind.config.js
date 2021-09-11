@@ -27,6 +27,8 @@ module.exports = {
     extend: {
       gridTemplateColumns: {
         "triple": "3.5rem 1fr 3.5rem",
+        "triple-lg": "4rem 1fr 4rem",
+        "table-5": "3fr 1fr 2fr 1fr 1.5rem",
       },
     },
   },

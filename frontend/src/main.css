@@ -81,3 +81,26 @@
     100% {opacity: 1; }
   }
 }
+
+
+.react-contexify {
+  @apply rounded-xl;
+}
+
+.react-contexify__item__content {
+  @apply text-sm;
+}
+
+.react-contexify__item.danger > .react-contexify__item__content {
+  @apply text-red-500;
+}
+
+.react-contexify__item.danger:not(.react-contexify__item--disabled):hover > .react-contexify__item__content,
+.react-contexify__item.danger:not(.react-contexify__item--disabled):focus > .react-contexify__item__content {
+  @apply bg-red-500;
+}
+
+.react-contexify__item:not(.react-contexify__item--disabled):hover > .react-contexify__item__content,
+.react-contexify__item:not(.react-contexify__item--disabled):focus > .react-contexify__item__content {
+  @apply bg-primary;
+}
