@@ -267,8 +267,8 @@ func (store *SqliteStore) DeleteAdminToken(id string) (bool, error) {
 func (store *SqliteStore) DeleteArchive(id string) (bool, error) {
 	statement, err := store.db.Prepare(`
 		DELETE
-		FROM archive
-		WHERE archive.id = ?
+		FROM archives
+		WHERE archives.id = ?
 	`)
 	if err != nil {
 		return false, err
