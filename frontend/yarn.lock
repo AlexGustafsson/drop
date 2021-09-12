@@ -1195,7 +1195,10 @@ doctrine@^3.0.0:
     esutils "^2.0.2"
 
 "drop-client@file:../clients/typescript":
-  version "0.1.0"
+  version "0.1.1"
+
+"drop-client@file:../clients/typescript/":
+  version "0.1.1"
 
 electron-to-chromium@^1.3.723:
   version "1.3.750"

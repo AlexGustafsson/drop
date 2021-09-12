@@ -7,6 +7,7 @@ import {useApi} from "../lib/api";
 import {humanReadableBytes} from "../lib/utils";
 import Fab from "../components/fab";
 import Archive from "../components/archive";
+import File from "../components/file";
 import { SVG as IonShare } from "../assets/ion-share.svg";
 import { SVG as FileIcon } from "../assets/file-icon.svg";
 import { SVG as MoreIcon } from "../assets/ion-more.svg";
@@ -23,7 +24,7 @@ import {
 import "react-contexify/dist/ReactContexify.css";
 
 import Modal from "../components/modal";
-import { ArchiveResponse } from "drop-client";
+import { ArchiveResponse, FileResponse } from "drop-client";
 import { useSnackbars } from "../components/snackbar";
 import { Link } from "react-router-dom";
 
@@ -34,6 +35,7 @@ const MainView = (): JSX.Element => {
 
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [archives, setArchives] = useState<ArchiveResponse[]>([]);
+  const [files, setFiles] = useState<FileResponse[]>([]);
   const [maximumSize, setMaximumSize] = useState(0);
   const [maximumFileCount, setMaximumFileCount] = useState(0);
   const [maximumFileSize, setMaximumFileSize] = useState(0);
@@ -126,7 +128,24 @@ const MainView = (): JSX.Element => {
     }
   }
 
+  function downloadFile({ props }: ItemParams<FileResponse>) {
+    history.push(`/files/${props?.id}`)
+  }
+
+  async function deleteFile({ props }: ItemParams<FileResponse>) {
+    try {
+      await api.archives.filesDelete(props!.archiveId, props!.id);
+      setFiles(files.filter(x => x.id !== props!.id));
+    } catch (error) {
+      if (error.error)
+        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
+      else
+        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+    }
+  }
+
   const archiveElements = archives.map(archive => <Archive key={archive.id} archive={archive} onMore={archiveContextMenu.show} />);
+  const fileElements = files.map(file => <File key={file.id} file={file} onMore={fileContextMenu.show} />);
 
   return <main className="container relative flex flex-col w-full">
     {
@@ -179,16 +198,7 @@ const MainView = (): JSX.Element => {
           <p>Uploaded</p>
           <p>Size</p>
         </div>
-        <div className="grid grid-cols-table-5 bg-white items-center p-2 rounded-xl">
-          <div className="flex flex-row items-center">
-            <FileIcon className="w-6 mr-2 text-primary" />
-            <p>The Design Guidelines</p>
-          </div>
-          <p>PDF</p>
-          <p>5 minutes ago</p>
-          <p>5 MB</p>
-          <MoreIcon className="w-6 text-gray-500 top-2 right-2 cursor-pointer" onClick={e => fileContextMenu.show(e, { props: {} })}  />
-        </div>
+        {fileElements}
       </div>
     </main>
 
@@ -232,9 +242,9 @@ const MainView = (): JSX.Element => {
     </Menu>
 
     <Menu id="file-context-menu" animation={false}>
-      <Item>Download file</Item>
-      <Item>Show archive</Item>
-      <Item className="danger">Delete</Item>
+      <Item onClick={downloadFile}>Download file</Item>
+      <Item onClick={showArchive}>Show archive</Item>
+      <Item onClick={deleteFile} className="danger">Delete</Item>
     </Menu>
   </main>
 };
