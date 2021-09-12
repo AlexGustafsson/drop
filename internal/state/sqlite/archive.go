@@ -209,7 +209,7 @@ func (archive *SqliteArchive) CreateFile(name string, lastModified int64, size i
 		INSERT INTO files
 		(id, archiveId, name, lastModified, size, mime, created)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return nil, err
