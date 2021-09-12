@@ -22,10 +22,7 @@ const ArchiveView = (): JSX.Element => {
     api.archives.archivesDetail(params.archiveId)
       .then(result => setArchive(result.data))
       .catch(error => {
-        if (error.error)
-          snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-        else
-          snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+        snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
       });
   }, []);
 
@@ -34,10 +31,7 @@ const ArchiveView = (): JSX.Element => {
     api.files.filesList()
       .then(result => setFiles(result.data.files))
       .catch(error => {
-        if (error.error)
-          snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-        else
-          snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+        snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
       });
   }, []);
 
@@ -46,10 +40,7 @@ const ArchiveView = (): JSX.Element => {
       await api.archives.archivesDelete(props!.id);
       history.push("/");
     } catch (error) {
-      if (error.error)
-        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-      else
-        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
     }
   }
 
@@ -58,10 +49,7 @@ const ArchiveView = (): JSX.Element => {
       await api.archives.filesDelete(props!.archiveId, props!.id);
       setFiles(files.filter(x => x.id !== props!.id));
     } catch (error) {
-      if (error.error)
-        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-      else
-        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
     }
   }
 

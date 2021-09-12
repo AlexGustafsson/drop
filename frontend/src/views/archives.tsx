@@ -51,10 +51,7 @@ const ArchivesView = (): JSX.Element => {
       await api.archives.archivesDelete(props!.id);
       setArchives(archives.filter(x => x.id !== props!.id));
     } catch (error) {
-      if (error.error)
-        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-      else
-        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
     }
   }
 

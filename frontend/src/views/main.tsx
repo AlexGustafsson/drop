@@ -24,7 +24,7 @@ import {
 import "react-contexify/dist/ReactContexify.css";
 
 import Modal from "../components/modal";
-import { ArchiveResponse, FileResponse } from "drop-client";
+import { ArchiveResponse, ErrorResponse, FileResponse } from "drop-client";
 import { useSnackbars } from "../components/snackbar";
 import { Link } from "react-router-dom";
 
@@ -58,10 +58,7 @@ const MainView = (): JSX.Element => {
     api.archives.archivesList()
       .then(result => setArchives(result.data.archives))
       .catch(error => {
-        if (error.error)
-          snackbars.show({title: "An error occured", body: error.error.error, type: "error"});
-        else
-          snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+        snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
       });
   }, []);
 
@@ -84,10 +81,7 @@ const MainView = (): JSX.Element => {
       setArchives([...archives, result.data]);
       toggleCreateArchiveModal();
     } catch (error) {
-      if (error.error)
-        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-      else
-        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
     }
   }
 
@@ -101,10 +95,7 @@ const MainView = (): JSX.Element => {
       setArchiveShareLink(`http://localhost:3000/upload#token=${result.data.token}`);
       toggleShareArchiveModal();
     } catch (error) {
-      if (error.error)
-        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-      else
-        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
     }
   }
 
@@ -113,7 +104,7 @@ const MainView = (): JSX.Element => {
   }
 
   async function shareArchive({ props }: ItemParams<ArchiveResponse>) {
-    await createArchiveToken(props?.id, 3600);
+    await createArchiveToken(props!.id, 3600);
     setShowShareArchiveModal(true)
   }
 
@@ -122,10 +113,7 @@ const MainView = (): JSX.Element => {
       await api.archives.archivesDelete(props!.id);
       setArchives(archives.filter(x => x.id !== props!.id));
     } catch (error) {
-      if (error.error)
-        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-      else
-        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
     }
   }
 
@@ -138,10 +126,7 @@ const MainView = (): JSX.Element => {
       await api.archives.filesDelete(props!.archiveId, props!.id);
       setFiles(files.filter(x => x.id !== props!.id));
     } catch (error) {
-      if (error.error)
-        snackbars.show({ title: "An error occured", body: error.error.error, type: "error" });
-      else
-        snackbars.show({ title: "An error occured", body: error.toString(), type: "error" });
+      snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
     }
   }
 

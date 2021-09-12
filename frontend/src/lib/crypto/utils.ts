@@ -17,7 +17,7 @@ export function generateKey(): ArrayBuffer {
 export function bufferToHex(buffer: ArrayBuffer): string {
   const view = new Uint8Array(buffer);
   return Array.from(view).map(x => x.toString(16).padStart(2, "0")).join("");
-};
+}
 
 // Likely only works for little endian systems
 export function hexToBuffer(hex: string): ArrayBuffer {
