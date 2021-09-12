@@ -6,6 +6,7 @@ import {useApi} from "../lib/api";
 
 import {humanReadableBytes} from "../lib/utils";
 import Fab from "../components/fab";
+import Archive from "../components/archive";
 import { SVG as IonShare } from "../assets/ion-share.svg";
 import { SVG as FileIcon } from "../assets/file-icon.svg";
 import { SVG as MoreIcon } from "../assets/ion-more.svg";
@@ -125,13 +126,7 @@ const MainView = (): JSX.Element => {
     }
   }
 
-  const archiveElements = archives.map(archive => <Link to="/archives/archive" key={archive.id}>
-    <div className="relative bg-white rounded-xl p-5">
-      <MoreIcon className="absolute w-6 text-gray-500 top-2 right-2 cursor-pointer" onClick={e => archiveContextMenu.show(e, {props: archive})} />
-      <FileIcon className="w-8 text-primary" />
-      <p className="text-lg text-gray">{archive.name}</p>
-    </div>
-  </Link>);
+  const archiveElements = archives.map(archive => <Archive key={archive.id} archive={archive} onMore={archiveContextMenu.show} />);
 
   return <main className="container relative flex flex-col w-full">
     {
