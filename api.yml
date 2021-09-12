@@ -19,6 +19,7 @@ paths:
         - AdminAuth: []
       responses:
         "200":
+          description: Retrieved admin tokens.
           content:
             application/json:
               schema:
@@ -35,12 +36,14 @@ paths:
       security:
         - AdminAuth: []
       parameters:
-        - $ref: "#/components/parameters/ArchiveId"
-      respones:
+        - $ref: "#/components/parameters/AdminTokenId"
+      responses:
         "200":
+          description: Retrieved token.
           content:
             application/json:
-              $ref: "#/components/schemas/TokenResponse"
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
         "403":
           $ref: "#/components/errors/403"
         "404":
@@ -54,8 +57,8 @@ paths:
       security:
         - AdminAuth: []
       parameters:
-        - $ref: "#/components/parameters/ArchiveId"
-      respones:
+        - $ref: "#/components/parameters/AdminTokenId"
+      responses:
         "200":
           description: Deleted
         "403":
@@ -74,6 +77,7 @@ paths:
         - AdminAuth: []
       responses:
         "200":
+          description: Retrieved archives.
           content:
             application/json:
               schema:
@@ -116,8 +120,11 @@ paths:
         - Archives
       security:
         - AdminAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ArchiveId"
       responses:
         "200":
+          description: Retrieved archive.
           content:
             application/json:
               schema:
@@ -134,6 +141,8 @@ paths:
         - Archives
       security:
         - AdminAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ArchiveId"
       responses:
         "200":
           description: Deleted
@@ -155,6 +164,7 @@ paths:
         - $ref: "#/components/parameters/ArchiveId"
       responses:
         "200":
+          description: Retrieved tokens.
           content:
             application/json:
               schema:
@@ -201,11 +211,14 @@ paths:
         - AdminAuth: []
       parameters:
         - $ref: "#/components/parameters/ArchiveId"
-      respones:
+        - $ref: "#/components/parameters/ArchiveTokenId"
+      responses:
         "200":
+          description: Retrieved token.
           content:
             application/json:
-              $ref: "#/components/schemas/TokenResponse"
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
         "403":
           $ref: "#/components/errors/403"
         "404":
@@ -220,7 +233,8 @@ paths:
         - AdminAuth: []
       parameters:
         - $ref: "#/components/parameters/ArchiveId"
-      respones:
+        - $ref: "#/components/parameters/ArchiveTokenId"
+      responses:
         "200":
           description: Deleted
         "403":
@@ -236,8 +250,10 @@ paths:
       security:
         - AdminAuth: []
       parameters:
+        - $ref: "#/components/parameters/ArchiveId"
       responses:
         "200":
+          description: Retrieved files.
           content:
             application/json:
               schema:
@@ -262,17 +278,17 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/FileRequest"
-        responses:
-          "201":
-            description: Created
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/FileResponse"
-          "403":
-            description: Forbidden
-          "404":
-            description: Not found
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileResponse"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
         "500":
           $ref: "#/components/errors/500"
   /archives/{archiveId}/files/{fileId}:
@@ -287,6 +303,7 @@ paths:
         - $ref: "#/components/parameters/FileId"
       responses:
         "200":
+          description: Retrieved file.
           content:
             application/json:
               schema:
@@ -327,6 +344,7 @@ paths:
         - $ref: "#/components/parameters/FileId"
       responses:
         "200":
+          description: Downloaded bytes.
           content:
             application/octet-stream:
               schema:
@@ -349,7 +367,8 @@ paths:
         - $ref: "#/components/parameters/FileId"
         - in: header
           name: Content-Range
-          type: string
+          schema:
+            type: string
           required: false
           description: The range of bytes to write. If not specified, the entire file is expected to be sent in the body. The body may be streamed over time.
       requestBody:
@@ -362,6 +381,27 @@ paths:
       responses:
         "201":
           description: Created
+        "403":
+          $ref: "#/components/errors/403"
+        "404":
+          $ref: "#/components/errors/404"
+        "500":
+          $ref: "#/components/errors/500"
+
+  /files:
+    get:
+      summary: Retrieve all files.
+      tags:
+        - Files
+      security:
+        - AdminAuth: []
+      responses:
+        "200":
+          description: Retrieved files.
+          content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/FilesResponse"
         "403":
           $ref: "#/components/errors/403"
         "404":
@@ -515,6 +555,7 @@ components:
       type: object
       required:
         - id
+        - archiveId
         - created
         - name
         - lastModified
@@ -523,7 +564,10 @@ components:
       properties:
         id:
           type: string
-          description: "The created file's id, used for the upload"
+          description: The id of the file.
+        archiveId:
+          type: string
+          description: The id of the archive the file belongs to.
         created:
           type: number
           description: The UTC timestamp at which the file was created.
@@ -574,6 +618,22 @@ components:
         type: string
       required: true
       description: The id of the target file.
+
+    ArchiveTokenId:
+      in: path
+      name: tokenId
+      schema:
+        type: string
+      required: true
+      description: The id of the target token.
+
+    AdminTokenId:
+      in: path
+      name: tokenId
+      schema:
+        type: string
+      required: true
+      description: The id of the target token.
 
   errors:
     "403":
