@@ -287,3 +287,33 @@ func (store *SqliteStore) DeleteArchive(id string) (bool, error) {
 
 	return rows > 0, nil
 }
+
+func (store *SqliteStore) Files() ([]state.File, error) {
+	statement, err := store.db.Prepare(`
+		SELECT
+		id, archiveId, name, lastModified, size, mime, created
+		FROM files
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	rows, err := statement.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := make([]state.File, 0)
+	for rows.Next() {
+		var file SqliteFile
+		err = rows.Scan(&file.id, &file.archiveId, &file.name, &file.lastModified, &file.size, &file.mime, &file.created)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, &file)
+	}
+
+	return files, nil
+}

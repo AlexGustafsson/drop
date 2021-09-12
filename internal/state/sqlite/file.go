@@ -2,6 +2,7 @@ package sqlite
 
 type SqliteFile struct {
 	id           string
+	archiveId    string
 	name         string
 	lastModified int64
 	size         int
@@ -11,6 +12,10 @@ type SqliteFile struct {
 
 func (file *SqliteFile) Id() string {
 	return file.id
+}
+
+func (file *SqliteFile) ArchiveId() string {
+	return file.archiveId
 }
 
 func (file *SqliteFile) Name() string {

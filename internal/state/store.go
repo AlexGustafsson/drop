@@ -3,6 +3,7 @@ package state
 // File is a
 type File interface {
 	Id() string
+	ArchiveId() string
 	Name() string
 	LastModified() int64
 	Size() int
@@ -59,4 +60,5 @@ type Store interface {
 	AdminToken(id string) (AdminToken, bool, error)
 	AdminTokens() ([]AdminToken, error)
 	DeleteAdminToken(id string) (bool, error)
+	Files() ([]File, error)
 }

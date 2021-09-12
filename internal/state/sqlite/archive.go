@@ -45,7 +45,7 @@ func (archive *SqliteArchive) Created() int64 {
 func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	statement, err := archive.store.db.Prepare(`
 		SELECT
-		id, name, lastModified, size, mime, created
+		id, archiveId, name, lastModified, size, mime, created
 		FROM files
 		WHERE files.archiveId = ? AND files.id = ?
 	`)
@@ -65,7 +65,7 @@ func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	}
 
 	var file SqliteFile
-	err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime, &file.created)
+	err = rows.Scan(&file.id, &file.archiveId, &file.name, &file.lastModified, &file.size, &file.mime, &file.created)
 	if err != nil {
 		return nil, false, err
 	}
@@ -94,7 +94,7 @@ func (archive *SqliteArchive) Files() ([]state.File, error) {
 	files := make([]state.File, 0)
 	for rows.Next() {
 		var file SqliteFile
-		err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime,  &file.created)
+		err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime, &file.created)
 		if err != nil {
 			return nil, err
 		}

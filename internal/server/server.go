@@ -46,6 +46,7 @@ func (server *Server) Start(address string, port uint16) error {
 	app.Get("/api/v1/archives/:archiveId/tokens/:tokenId", handle(server.handleTokenGet))
 	app.Delete("/api/v1/archives/:archiveId/tokens/:tokenId", handle(server.handleTokenDelete))
 
+	app.Get("/api/v1/files", handle(server.handleAllFileList))
 	app.Get("/api/v1/archives/:archiveId/files", handle(server.handleFileList))
 	app.Post("/api/v1/archives/:archiveId/files", handle(server.handleFileCreate))
 	app.Get("/api/v1/archives/:archiveId/files/:fileId", handle(server.handleFileGet))

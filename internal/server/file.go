@@ -29,6 +29,40 @@ type FileCreateRequest struct {
 	Mime         string `json:"mime"`
 }
 
+func (server *Server) handleAllFileList(ctx *wrappers.Context) error {
+	if _, ok := ctx.RequireAdminAuth(); !ok {
+		return nil
+	}
+
+	files, err := server.stateStore.Files()
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return err
+	}
+
+	response := FileListResponse{
+		Files: make([]FileResponse, 0),
+	}
+	for _, file := range files {
+		response.Files = append(response.Files, FileResponse{
+			Id:           file.Id(),
+			Created:      file.Created(),
+			Name:         file.Name(),
+			LastModified: file.LastModified(),
+			Size:         file.Size(),
+			Mime:         file.Mime(),
+		})
+	}
+
+	err = ctx.JSON(response)
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return err
+	}
+
+	return nil
+}
+
 func (server *Server) handleFileList(ctx *wrappers.Context) error {
 	if _, ok := ctx.RequireAdminAuth(); !ok {
 		return nil
