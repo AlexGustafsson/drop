@@ -1,7 +1,6 @@
 
 import type {Message, UploadFileMessage} from "./types";
 import {FileStream, EncryptionStream} from "../crypto/streams";
-import { bufferToHex, hexToCryptoKey } from "../crypto/utils";
 
 export default class FileUploader {
   private token: string;
@@ -29,7 +28,7 @@ export default class FileUploader {
   }
 
   async createFile(file: File): Promise<string> {
-    const request = new Request(`${DROP_API_ROOT}/api/v1/archive/${this.archiveId}/file`, {
+    const request = new Request(`${DROP_API_ROOT}/archives/${this.archiveId}/files`, {
       method: "POST",
       headers: new Headers({
         "Authorization": `Bearer ${this.token}`,
@@ -54,15 +53,16 @@ export default class FileUploader {
     let encryptionProgress = 0;
     const stream = new FileStream(file).pipeThrough(new EncryptionStream(this.key));
     const reader = stream.getReader();
+    // TODO: Format into a Promise.All call so that one may tell when the function finishes
     while (!reader.closed) {
       reader.read().then(result => {
         if (!result.value)
           return;
-        const chunk = result.value!;
+        const chunk = result.value;
 
         const offset = 0;
         const request = new XMLHttpRequest();
-        request.open("POST", `${DROP_API_ROOT}/api/v1/archive/${this.archiveId}/file/${id}`, true);
+        request.open("POST", `${DROP_API_ROOT}/archives/${this.archiveId}/files/${id}`, true);
         request.setRequestHeader("Authorization", `Bearer ${this.token}`);
         request.setRequestHeader("Content-Type", "application/json");
         request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + chunk.byteLength}/${file.size}`);
@@ -78,19 +78,6 @@ export default class FileUploader {
         request.send(view);
       });
     }
-    // encryptFile(this.key, nonce, file, (error, chunk, offset) => {
-    //   if (error != null || chunk === null) {
-    //     // TODO: handle
-    //     return;
-    //   }
-
-    //   encryptionProgress += chunk.byteLength;
-    //   this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
-
-
-
-    //   // TODO: Handle errors
-    // });
   }
 
   handleMessage(event: MessageEvent) {
