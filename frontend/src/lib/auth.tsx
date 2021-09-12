@@ -72,6 +72,10 @@ export class AuthContext  {
         // NOOP
       }
     }
+
+    if (fragments.secret) {
+      this.uploadSecret = fragments.secret;
+    }
   }
 }
 
