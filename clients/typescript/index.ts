@@ -92,8 +92,11 @@ export interface FileRequest {
 }
 
 export interface FileResponse {
-  /** The created file's id, used for the upload */
+  /** The id of the file. */
   id: string;
+
+  /** The id of the archive the file belongs to. */
+  archiveId: string;
 
   /** The UTC timestamp at which the file was created. */
   created: number;
@@ -363,11 +366,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/admin/tokens/{tokenId}
      * @secure
      */
-    tokensDetail: (archiveId: string, tokenId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
+    tokensDetail: (tokenId: string, params: RequestParams = {}) =>
+      this.request<TokenResponse, any>({
         path: `/admin/tokens/${tokenId}`,
         method: "GET",
         secure: true,
+        format: "json",
         ...params,
       }),
 
@@ -380,8 +384,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request DELETE:/admin/tokens/{tokenId}
      * @secure
      */
-    tokensDelete: (archiveId: string, tokenId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
+    tokensDelete: (tokenId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
         path: `/admin/tokens/${tokenId}`,
         method: "DELETE",
         secure: true,
@@ -512,10 +516,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     tokensDetail2: (archiveId: string, tokenId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<TokenResponse, any>({
         path: `/archives/${archiveId}/tokens/${tokenId}`,
         method: "GET",
         secure: true,
+        format: "json",
         ...params,
       }),
 
@@ -529,7 +534,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     tokensDelete: (archiveId: string, tokenId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<void, any>({
         path: `/archives/${archiveId}/tokens/${tokenId}`,
         method: "DELETE",
         secure: true,
@@ -564,12 +569,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     filesCreate: (archiveId: string, data: FileRequest, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<FileResponse, void>({
         path: `/archives/${archiveId}/files`,
         method: "POST",
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -642,6 +648,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: data,
         secure: true,
+        ...params,
+      }),
+  };
+  files = {
+    /**
+     * No description
+     *
+     * @tags Files
+     * @name FilesList
+     * @summary Retrieve all files.
+     * @request GET:/files
+     * @secure
+     */
+    filesList: (params: RequestParams = {}) =>
+      this.request<FilesResponse, any>({
+        path: `/files`,
+        method: "GET",
+        secure: true,
+        format: "json",
         ...params,
       }),
   };

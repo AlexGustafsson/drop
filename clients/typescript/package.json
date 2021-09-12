@@ -1,6 +1,6 @@
 {
   "name": "drop-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A self-hosted, end-to-end encrypted personal file sharing service",
   "main": "index.ts"
 }
