@@ -178,6 +178,7 @@ const MainView = (): JSX.Element => {
       <button className="primary" onClick={toggleCreateArchiveModal}>Create an archive</button>
     </div>}
 
+    {archives.length > 0 &&
     <main className="mr-80 p-5">
       <header className="flex place-content-between items-center mb-2">
         <h1 className="text-lg text-gray-800">Recent Archives</h1>
@@ -201,7 +202,9 @@ const MainView = (): JSX.Element => {
         {fileElements}
       </div>
     </main>
+  }
 
+    {archives.length > 0 &&
     <aside className="fixed container right-0 top-0 bottom-0 p-2 pt-5 bg-white w-80 bg-white">
       <ul className="flex flex-col items-center">
         <li className="grid grid-cols-triple-lg items-center w-64 mb-2">
@@ -230,6 +233,7 @@ const MainView = (): JSX.Element => {
         </li>
       </ul>
     </aside>
+  }
 
     <div className="fixed container bottom-0">
       <Fab className="absolute bottom-10 right-10" onClick={toggleCreateArchiveModal}><IonShare /></Fab>
