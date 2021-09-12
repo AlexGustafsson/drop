@@ -112,7 +112,8 @@ const MainView = (): JSX.Element => {
     history.push(`/archives/${props?.id}`);
   }
 
-  function shareArchive({ props }: ItemParams<ArchiveResponse>) {
+  async function shareArchive({ props }: ItemParams<ArchiveResponse>) {
+    await createArchiveToken(props?.id, 3600);
     setShowShareArchiveModal(true)
   }
 
