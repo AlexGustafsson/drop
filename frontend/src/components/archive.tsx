@@ -16,7 +16,7 @@ const Archive = ({ archive, onMore }: ArchiveProps): JSX.Element => {
     onMore(event, {props: archive});
   }
 
-  return <Link to="/archives/archive">
+  return <Link to={`/archives/${archive.id}`}>
     <div className="relative bg-white rounded-xl p-5">
       <MoreIcon className="absolute w-6 text-gray-500 top-2 right-2 cursor-pointer" onClick={handleOnMore} />
       <FileIcon className="w-8 text-primary" />

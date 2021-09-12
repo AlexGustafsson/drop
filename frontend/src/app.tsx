@@ -12,6 +12,7 @@ import NotFoundView from "./views/not-found"
 
 import {useAuth, PrivateRoute} from "./lib/auth";
 import ArchivesView from "./views/archives";
+import ArchiveView from "./views/archive";
 
 const App = (): JSX.Element => {
   const auth = useAuth();
@@ -20,6 +21,7 @@ const App = (): JSX.Element => {
     <Switch>
       <PrivateRoute exact path="/" requireAdmin redirect component={MainView} />
       <PrivateRoute exact path="/archives" requireAdmin redirect component={ArchivesView} />
+      <PrivateRoute exact path="/archives/:archiveId" requireAdmin redirect component={ArchiveView} />
       <Route exact path="/login" component={LoginView} />
       <Route exact path="/logout" render={() => {
         auth.logout();
