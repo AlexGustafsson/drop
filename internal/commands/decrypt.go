@@ -1,12 +1,12 @@
 package commands
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
-
-	"golang.org/x/crypto/chacha20"
 
 	"github.com/AlexGustafsson/drop/internal/configuration"
 	"github.com/AlexGustafsson/drop/internal/data"
@@ -15,6 +15,11 @@ import (
 	"github.com/AlexGustafsson/drop/internal/state/sqlite"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+)
+
+const (
+	AES_GCM_IV_BYTES  = 12
+	AES_GCM_TAG_BYTES = 16
 )
 
 func decryptCommand(context *cli.Context) error {
@@ -39,7 +44,7 @@ func decryptCommand(context *cli.Context) error {
 		for _, err := range errors {
 			log.Error(err)
 		}
-		return fmt.Errorf("Failed to validate the configuration")
+		return fmt.Errorf("failed to validate the configuration")
 	}
 
 	if config.LogAsJSON {
@@ -77,23 +82,23 @@ func decryptCommand(context *cli.Context) error {
 		return err
 	}
 	if !archiveExists {
-		return fmt.Errorf("The specified archive does not exist")
+		return fmt.Errorf("the specified archive does not exist")
 	}
 
-	_, fileExists, err := archive.File(fileId)
+	file, fileExists, err := archive.File(fileId)
 	if err != nil {
 		return err
 	}
 	if !fileExists {
-		return fmt.Errorf("The specified file does not exists")
+		return fmt.Errorf("the specified file does not exists")
 	}
 
-	// TODO: Remove
-	nonce := ""
-	nonceBytes, err := hex.DecodeString(nonce)
-	if err != nil {
-		return err
-	}
+	overhead := file.EncryptedSize() - file.Size()
+	chunks := overhead / (AES_GCM_IV_BYTES + AES_GCM_TAG_BYTES)
+	encryptedChunkSize := file.EncryptedSize() / chunks
+	decryptedChunkSize := file.Size() / chunks
+	log.Debugf("File is %dB, overhead %dB. There are %d chunk(s)", file.Size(), overhead, chunks)
+	log.Debugf("Encrypted buffer is %dB, decrypted buffer %dB", encryptedChunkSize, decryptedChunkSize)
 
 	var writer io.Writer
 
@@ -108,23 +113,25 @@ func decryptCommand(context *cli.Context) error {
 		writer = file
 	}
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(sharedSecret, nonceBytes)
-	if err != nil {
-		return err
-	}
-
 	inputFile, err := dataStore.Reader(archiveId, fileId)
 	if err != nil {
 		return err
 	}
 
-	chunkSize := 1024 * 1024
-	buffer := make([]byte, 0, chunkSize)
-	offset := 0
+	block, err := aes.NewCipher(sharedSecret)
+	if err != nil {
+		return err
+	}
+
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return err
+	}
+
+	encryptedBuffer := make([]byte, 0, encryptedChunkSize)
+	decryptedBuffer := make([]byte, 0, decryptedChunkSize)
 	for {
-		length, err := io.ReadFull(inputFile, buffer[:cap(buffer)])
-		// TODO: Doesn't this duplicate memory?
-		buffer = buffer[:length]
+		length, err := io.ReadFull(inputFile, encryptedBuffer[:cap(encryptedBuffer)])
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -134,13 +141,15 @@ func decryptCommand(context *cli.Context) error {
 			}
 		}
 
-		log.Debugf("Read %d bytes", length)
+		log.Debugf("Read %d encrypted bytes", length)
+		nonce := encryptedBuffer[length-AES_GCM_IV_BYTES : length]
+		ciphertext := encryptedBuffer[:length-AES_GCM_IV_BYTES]
 
-		// TODO: What if a block is cut off between chunks?
-		cipher.SetCounter(1 + uint32(offset/64))
-		plaintext := make([]byte, length)
-		cipher.XORKeyStream(plaintext, buffer)
-		offset += length
+		plaintext, err := aead.Open(decryptedBuffer, nonce, ciphertext, nil)
+		if err != nil {
+			return err
+		}
+
 		_, err = writer.Write(plaintext)
 		if err != nil {
 			return err
@@ -148,11 +157,4 @@ func decryptCommand(context *cli.Context) error {
 	}
 
 	return nil
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
