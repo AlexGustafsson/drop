@@ -62,6 +62,14 @@ const MainView = (): JSX.Element => {
       });
   }, []);
 
+  useEffect(() => {
+    api.files.filesList()
+      .then(result => setFiles(result.data.files))
+      .catch(error => {
+        snackbars.show({ title: "An error occured", body: `${error}`, type: "error" });
+      });
+  }, []);
+
   function toggleCreateArchiveModal() {
     setShowArchiveModal(!showArchiveModal);
   }
