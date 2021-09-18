@@ -7,6 +7,10 @@ import (
 )
 
 func parseContentRange(header string) (string, uint64, uint64, uint64, error) {
+	if header == "" {
+		return "", 0, 0, 0, fmt.Errorf("header is empty")
+	}
+
 	// bytes 0-1024/2048
 	expression, err := regexp.Compile(`^([a-z]+) ([0-9]+)-([0-9]+)/([0-9]+)$`)
 	if err != nil {
@@ -15,7 +19,7 @@ func parseContentRange(header string) (string, uint64, uint64, uint64, error) {
 
 	matches := expression.FindStringSubmatch(header)
 	if matches == nil {
-		return "", 0, 0, 0, fmt.Errorf("Bad header")
+		return "", 0, 0, 0, fmt.Errorf("bad header")
 	}
 
 	unit := matches[1]
@@ -36,7 +40,7 @@ func parseContentRange(header string) (string, uint64, uint64, uint64, error) {
 	}
 
 	if start > stop || stop > size {
-		return "", 0, 0, 0, fmt.Errorf("Incorrect range")
+		return "", 0, 0, 0, fmt.Errorf("incorrect range - %d-%d (of %d)", start, stop, size)
 	}
 
 	return unit, start, stop, size, nil
