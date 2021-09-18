@@ -87,6 +87,9 @@ export interface FileRequest {
   /** Size in bytes. */
   size: number;
 
+  /** Size in bytes of the encrypted file. */
+  encryptedSize: number;
+
   /** The MIME type of the file. */
   mime: string;
 }
@@ -109,6 +112,9 @@ export interface FileResponse {
 
   /** Size in bytes. */
   size: number;
+
+  /** Size in bytes of the encrypted file. */
+  encryptedSize: number;
 
   /** The MIME type of the file. */
   mime: string;
