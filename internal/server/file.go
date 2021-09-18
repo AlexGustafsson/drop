@@ -116,6 +116,8 @@ func (server *Server) handleFileCreate(ctx *wrappers.Context) error {
 		return nil
 	}
 
+	// TODO: Validate size restrictions etc.
+
 	file, err := archive.CreateFile(
 		request.Name,
 		request.LastModified,
@@ -125,6 +127,12 @@ func (server *Server) handleFileCreate(ctx *wrappers.Context) error {
 	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
 		return err
+	}
+
+	err = server.dataStore.Touch(archive.Id(), file.Id(), uint64(request.Size))
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return fmt.Errorf("failed to touch file: %s/%s", archive.Id(), file.Id())
 	}
 
 	response := FileResponse{
@@ -212,9 +220,13 @@ func (server *Server) handleFileUpload(ctx *wrappers.Context) error {
 	}
 
 	fileExists, err = server.dataStore.Exists(archive.Id(), fileId)
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
+		return fmt.Errorf("failed to check if file exists: %s/%s", archive.Id(), fileId)
+	}
 	if !fileExists {
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
-		return fmt.Errorf("File is tracked in state but does not exist in the store: %s/%s", archive.Id(), fileId)
+		return fmt.Errorf("file is tracked in state but does not exist in the store: %s/%s", archive.Id(), fileId)
 	}
 
 	contentRangeHeader := ctx.Get("Content-Range")
@@ -260,7 +272,7 @@ func (server *Server) handleFileUpload(ctx *wrappers.Context) error {
 			}
 		}
 
-		log.Debugf("Read %d bytes for file '%s'", length, file.Name())
+		log.Debugf("Wrote %d bytes for file '%s'", length, file.Name())
 		err = server.dataStore.Write(archive.Id(), fileId, buffer, rangeStart)
 		if err != nil {
 			ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
