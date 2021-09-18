@@ -45,7 +45,7 @@ func (archive *SqliteArchive) Created() int64 {
 func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	statement, err := archive.store.db.Prepare(`
 		SELECT
-		id, archiveId, name, lastModified, size, mime, created
+		id, archiveId, name, lastModified, size, encryptedSize, mime, created
 		FROM files
 		WHERE files.archiveId = ? AND files.id = ?
 	`)
@@ -65,7 +65,7 @@ func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 	}
 
 	var file SqliteFile
-	err = rows.Scan(&file.id, &file.archiveId, &file.name, &file.lastModified, &file.size, &file.mime, &file.created)
+	err = rows.Scan(&file.id, &file.archiveId, &file.name, &file.lastModified, &file.size, &file.encryptedSize, &file.mime, &file.created)
 	if err != nil {
 		return nil, false, err
 	}
@@ -76,7 +76,7 @@ func (archive *SqliteArchive) File(id string) (state.File, bool, error) {
 func (archive *SqliteArchive) Files() ([]state.File, error) {
 	statement, err := archive.store.db.Prepare(`
 		SELECT
-		id, name, lastModified, size, mime, created
+		id, name, lastModified, size, encryptedSize, mime, created
 		FROM files
 		WHERE files.archiveId = ?
 	`)
@@ -94,7 +94,7 @@ func (archive *SqliteArchive) Files() ([]state.File, error) {
 	files := make([]state.File, 0)
 	for rows.Next() {
 		var file SqliteFile
-		err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.mime, &file.created)
+		err = rows.Scan(&file.id, &file.name, &file.lastModified, &file.size, &file.encryptedSize, &file.mime, &file.created)
 		if err != nil {
 			return nil, err
 		}
@@ -198,7 +198,7 @@ func (archive *SqliteArchive) CreateToken(lifetime int) (state.ArchiveToken, str
 	return token, tokenString, nil
 }
 
-func (archive *SqliteArchive) CreateFile(name string, lastModified int64, size int, mime string) (state.File, error) {
+func (archive *SqliteArchive) CreateFile(name string, lastModified int64, size int, encryptedSize int, mime string) (state.File, error) {
 	rawId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -207,9 +207,9 @@ func (archive *SqliteArchive) CreateFile(name string, lastModified int64, size i
 
 	statement, err := archive.store.db.Prepare(`
 		INSERT INTO files
-		(id, archiveId, name, lastModified, size, mime, created)
+		(id, archiveId, name, lastModified, size, encryptedSize, mime, created)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return nil, err
@@ -217,18 +217,19 @@ func (archive *SqliteArchive) CreateFile(name string, lastModified int64, size i
 	defer statement.Close()
 
 	created := time.Now().Unix()
-	_, err = statement.Exec(id, archive.id, name, lastModified, size, mime, created)
+	_, err = statement.Exec(id, archive.id, name, lastModified, size, encryptedSize, mime, created)
 	if err != nil {
 		return nil, err
 	}
 
 	file := &SqliteFile{
-		id:           id,
-		name:         name,
-		lastModified: lastModified,
-		size:         size,
-		mime:         mime,
-		created:      created,
+		id:            id,
+		name:          name,
+		lastModified:  lastModified,
+		size:          size,
+		encryptedSize: encryptedSize,
+		mime:          mime,
+		created:       created,
 	}
 
 	return file, nil

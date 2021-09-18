@@ -1,13 +1,14 @@
 package sqlite
 
 type SqliteFile struct {
-	id           string
-	archiveId    string
-	name         string
-	lastModified int64
-	size         int
-	mime         string
-	created      int64
+	id            string
+	archiveId     string
+	name          string
+	lastModified  int64
+	size          int
+	encryptedSize int
+	mime          string
+	created       int64
 }
 
 func (file *SqliteFile) Id() string {
@@ -28,6 +29,10 @@ func (file *SqliteFile) LastModified() int64 {
 
 func (file *SqliteFile) Size() int {
 	return file.size
+}
+
+func (file *SqliteFile) EncryptedSize() int {
+	return file.encryptedSize
 }
 
 func (file *SqliteFile) Mime() string {

@@ -10,12 +10,13 @@ import (
 )
 
 type FileResponse struct {
-	Id           string `json:"id"`
-	Created      int64  `json:"created"`
-	Name         string `json:"name"`
-	LastModified int64  `json:"lastModified"`
-	Size         int    `json:"size"`
-	Mime         string `json:"mime"`
+	Id            string `json:"id"`
+	Created       int64  `json:"created"`
+	Name          string `json:"name"`
+	LastModified  int64  `json:"lastModified"`
+	Size          int    `json:"size"`
+	EncryptedSize int    `json:"encryptedSize"`
+	Mime          string `json:"mime"`
 }
 
 type FileListResponse struct {
@@ -23,10 +24,11 @@ type FileListResponse struct {
 }
 
 type FileCreateRequest struct {
-	Name         string `json:"name"`
-	LastModified int64  `json:"lastModified"`
-	Size         int    `json:"size"`
-	Mime         string `json:"mime"`
+	Name          string `json:"name"`
+	LastModified  int64  `json:"lastModified"`
+	Size          int    `json:"size"`
+	EncryptedSize int    `json:"encryptedSize"`
+	Mime          string `json:"mime"`
 }
 
 func (server *Server) handleAllFileList(ctx *wrappers.Context) error {
@@ -122,6 +124,7 @@ func (server *Server) handleFileCreate(ctx *wrappers.Context) error {
 		request.Name,
 		request.LastModified,
 		request.Size,
+		request.EncryptedSize,
 		request.Mime,
 	)
 	if err != nil {
@@ -136,12 +139,13 @@ func (server *Server) handleFileCreate(ctx *wrappers.Context) error {
 	}
 
 	response := FileResponse{
-		Id:           file.Id(),
-		Created:      file.Created(),
-		Name:         file.Name(),
-		LastModified: file.LastModified(),
-		Size:         file.Size(),
-		Mime:         file.Mime(),
+		Id:            file.Id(),
+		Created:       file.Created(),
+		Name:          file.Name(),
+		LastModified:  file.LastModified(),
+		Size:          file.Size(),
+		EncryptedSize: file.EncryptedSize(),
+		Mime:          file.Mime(),
 	}
 
 	err = ctx.JSON(response)
@@ -244,12 +248,14 @@ func (server *Server) handleFileUpload(ctx *wrappers.Context) error {
 
 		// Only bytes are supported
 		if rangeUnit != "bytes" {
+			log.Debugf("Got bad range unit '%s'", rangeUnit)
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
 			return nil
 		}
 
 		// Incoherent sizes
-		if rangeSize != uint64(file.Size()) {
+		if rangeSize != uint64(file.EncryptedSize()) {
+			log.Debugf("Got bad range size %d - expected %d", rangeSize, file.EncryptedSize())
 			ctx.Status(fiber.StatusBadRequest).SendString(BadRequestError)
 			return nil
 		}
