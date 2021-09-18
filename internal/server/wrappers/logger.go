@@ -15,7 +15,7 @@ func extractFields(ctx *Context, fields log.Fields) {
 		fields["admin"] = false
 	}
 
-	if claims, isArchive := ctx.AdminClaims(); isArchive {
+	if claims, isArchive := ctx.ArchiveClaims(); isArchive {
 		fields["token"] = claims.Id
 	}
 }
