@@ -6,7 +6,7 @@ export class EncryptionStream extends TransformStream<ArrayBuffer, ArrayBuffer> 
   constructor(key: CryptoKey) {
     super({
       async transform(chunk, controller) {
-        const iv = window.crypto.getRandomValues(new Uint8Array(AES_GCM_IV_BYTES));
+        const iv = crypto.getRandomValues(new Uint8Array(AES_GCM_IV_BYTES));
         const encryptedChunk = await crypto.subtle.encrypt(
           { name: "AES-GCM", iv, tagLength: AES_GCM_TAG_LENGTH },
           key,
