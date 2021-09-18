@@ -1,6 +1,7 @@
 
 import type {Message, UploadFileMessage} from "./types";
-import {FileStream, EncryptionStream} from "../crypto/streams";
+import {FileStream, EncryptionStream, CHUNK_SIZE, AES_GCM_IV_BYTES} from "../crypto/streams";
+import { calculateEncryptedFileSize } from "../crypto/utils";
 
 export default class FileUploader {
   private token: string;
@@ -28,6 +29,7 @@ export default class FileUploader {
   }
 
   async createFile(file: File): Promise<string> {
+    const encryptedFileSize = calculateEncryptedFileSize(file);
     const request = new Request(`${DROP_API_ROOT}/archives/${this.archiveId}/files`, {
       method: "POST",
       headers: new Headers({
@@ -38,6 +40,7 @@ export default class FileUploader {
         name: file.name,
         lastModified: file.lastModified,
         size: file.size,
+        encryptedSize: encryptedFileSize,
         mime: file.type
       }),
     });
@@ -48,36 +51,50 @@ export default class FileUploader {
   }
 
   async upload(file: File, internalFileId: string) {
+    const encryptedFileSize = calculateEncryptedFileSize(file);
+    console.log("file size", file.size)
+    console.log("encrypted size", encryptedFileSize)
     const id = await this.createFile(file);
     let uploadProgress = 0;
     let encryptionProgress = 0;
     const stream = new FileStream(file).pipeThrough(new EncryptionStream(this.key));
     const reader = stream.getReader();
-    // TODO: Format into a Promise.All call so that one may tell when the function finishes
-    while (!reader.closed) {
-      reader.read().then(result => {
-        if (!result.value)
-          return;
-        const chunk = result.value;
 
-        const offset = 0;
-        const request = new XMLHttpRequest();
-        request.open("POST", `${DROP_API_ROOT}/archives/${this.archiveId}/files/${id}`, true);
-        request.setRequestHeader("Authorization", `Bearer ${this.token}`);
-        request.setRequestHeader("Content-Type", "application/json");
-        request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + chunk.byteLength}/${file.size}`);
+    let offset = 0
+    const process = ({done, value}: {done: boolean, value?: ArrayBuffer}) => {
+      if (done) {
+        console.log("uploaded");
+        return;
+      }
 
-        request.onreadystatechange = () => {
-          if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
-            uploadProgress += chunk.byteLength;
-            this.sendProgressMessage(internalFileId, encryptionProgress / file.size, uploadProgress / file.size);
-          }
-        };
+      if (!value) {
+        console.log("got empty chunk");
+        return;
+      }
 
-        const view = new Uint8Array(chunk, 0, chunk.byteLength);
-        request.send(view);
-      });
-    }
+      const request = new XMLHttpRequest();
+      request.open("POST", `${DROP_API_ROOT}/archives/${this.archiveId}/files/${id}/content`, true);
+      request.setRequestHeader("Authorization", `Bearer ${this.token}`);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.setRequestHeader("Content-Range", `bytes ${offset}-${offset + value.byteLength}/${encryptedFileSize}`);
+
+      request.onreadystatechange = () => {
+        if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+          uploadProgress += value.byteLength;
+          this.sendProgressMessage(internalFileId, encryptionProgress / encryptedFileSize, uploadProgress / encryptedFileSize);
+        }
+      };
+
+      const view = new Uint8Array(value, 0, value.byteLength);
+      request.send(view);
+      offset += value.byteLength;
+
+      // Process next chunk
+      reader.read().then(process);
+    };
+
+    // Kickstart the flow
+    reader.read().then(process);
   }
 
   handleMessage(event: MessageEvent) {

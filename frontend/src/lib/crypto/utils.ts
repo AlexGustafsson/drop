@@ -1,3 +1,5 @@
+import { CHUNK_SIZE, AES_GCM_IV_BYTES, AES_GCM_TAG_LENGTH } from "./streams";
+
 export function generateBytes(size: number): ArrayBuffer {
   const buffer = new ArrayBuffer(size);
   const view = new Uint8Array(buffer);
@@ -37,4 +39,10 @@ export function hexToCryptoKey(hex: string): Promise<CryptoKey> {
     false,
     ["encrypt", "decrypt"],
   );
+}
+
+export function calculateEncryptedFileSize(file: File): number {
+  const requiredChunks = Math.ceil(file.size / CHUNK_SIZE);
+  const ivSize = requiredChunks * (AES_GCM_TAG_LENGTH / 8 + AES_GCM_IV_BYTES);
+  return file.size + ivSize;
 }

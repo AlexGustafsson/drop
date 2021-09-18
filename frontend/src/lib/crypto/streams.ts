@@ -1,6 +1,6 @@
-const AES_GCM_TAG_LENGTH = 128;
-const AES_GCM_IV_BYTES = 12;
-const CHUNK_SIZE = 1024 * 1024;
+export const AES_GCM_TAG_LENGTH = 128;
+export const AES_GCM_IV_BYTES = 12;
+export const CHUNK_SIZE = 1024 * 1024;
 
 export class EncryptionStream extends TransformStream<ArrayBuffer, ArrayBuffer> {
   constructor(key: CryptoKey) {
