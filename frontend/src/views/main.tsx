@@ -25,7 +25,7 @@ import "react-contexify/dist/ReactContexify.css";
 
 import Modal from "../components/modal";
 import { ArchiveResponse, ErrorResponse, FileResponse } from "drop-client";
-import { useSnackbars } from "../components/snackbar";
+import { SnackbarMessage, useSnackbars } from "../components/snackbar";
 import { Link } from "react-router-dom";
 
 const MainView = (): JSX.Element => {
@@ -126,7 +126,20 @@ const MainView = (): JSX.Element => {
   }
 
   function downloadFile({ props }: ItemParams<FileResponse>) {
-    history.push(`/files/${props?.id}`)
+    // TODO: https://reactjs.org/docs/hooks-custom.html
+    === break here
+    const [title, setTitle] = useState<string>(`Downloading ${props?.name}`);
+    const [body, setBody] = useState<string>("");
+
+    const snackbar = snackbars.show({ title, body, type: "default" });
+    let i = 0;
+    const interval = setInterval(() => {
+      setBody(i.toString());
+      i++;
+    }, 100);
+    snackbar.removed = () => {
+      clearInterval(interval);
+    }
   }
 
   async function deleteFile({ props }: ItemParams<FileResponse>) {

@@ -4,59 +4,78 @@ export interface SnackbarMessage {
   title?: string
   body?: string
   id?: number
-  type: "default" | "error" | "warning"
+  type?: "default" | "error" | "warning"
+  removed?: (snackbar: UpdatableSnackbarMessage) => void
 }
 
-// const Snackbar = (props: {}): JSX.Element => {
-//   return <div className={"cursor-pointer transition-shadow bg-primary w-12 h-12 rounded-full text-white p-2 shadow-lg hover:shadow-xl select-none active:shadow-none "}>
-
-//   </div>
-// };
+interface UpdatableSnackbarMessage {
+  title: string
+  body: string
+  id: number
+  type: string
+  removed: (snackbar: UpdatableSnackbarMessage) => void
+  remove(): void,
+}
 
 type SnackbarState = {
-  snackbars: SnackbarMessage[],
-  setSnackbars: React.Dispatch<React.SetStateAction<SnackbarMessage[]>>,
+  snackbars: UpdatableSnackbarMessage[],
+  setSnackbars: React.Dispatch<React.SetStateAction<UpdatableSnackbarMessage[]>>,
 };
 
 export type SnackbarsInterface = {
-  snackbars: SnackbarMessage[],
-  show(snackbar: SnackbarMessage): void,
-  remove(id: number): void,
+  snackbars: UpdatableSnackbarMessage[],
+  show(snackbar: SnackbarMessage): UpdatableSnackbarMessage,
+  remove(snackar: UpdatableSnackbarMessage): void,
 };
 
 const SnackbarContext = createContext<SnackbarState>({snackbars: [], setSnackbars: () => {}});
 
 export function useSnackbars(): SnackbarsInterface {
   const {snackbars, setSnackbars} = useContext(SnackbarContext);
+  const remove = (snackbar: UpdatableSnackbarMessage) => {
+    setSnackbars(currentSnackbars => currentSnackbars.filter(x => x.id !== snackbar.id));
+    if (snackbar.removed)
+      snackbar.removed(snackbar);
+  };
   const show = (snackbar: SnackbarMessage) => {
-    if (!snackbar.id)
-      snackbar.id = Math.random();
-    setSnackbars(currentSnackbars => [...currentSnackbars, snackbar]);
-  };
-  const remove = (id: number) => {
-    setSnackbars(currentSnackbars => currentSnackbars.filter(x => x.id !== id));
-  };
+    const message: UpdatableSnackbarMessage = {
+      title: snackbar.title || "",
+      body: snackbar.body || "",
+      id: typeof (snackbar.id) === "undefined" ? Math.random() : snackbar.id,
+      type: snackbar.type || "default",
+      removed: snackbar.removed || (() => {}),
+      remove: () => {},
+    }
+    message.remove = () => remove(message);
+
+    setSnackbars(currentSnackbars => [...currentSnackbars, message]);
+    return message;
+  }
   return {snackbars, show, remove};
 }
 
-export const Snackbar = ({title, body, type, id}: SnackbarMessage): JSX.Element => {
+type SnackbarProps = {
+  snackbar: UpdatableSnackbarMessage
+}
+
+export const Snackbar = ({snackbar}: SnackbarProps): JSX.Element => {
   const snackbars = useSnackbars();
-  const height = title ? "h-14" : "h-10";
+  const height = snackbar.title ? "h-14" : "h-10";
   let background = "bg-primary";
-  if (type === "error")
+  if (snackbar.type === "error")
     background = "bg-red-400";
-  else if (type === "warning")
+  else if (snackbar.type === "warning")
     background = "bg-yellow-400";
   return <div className={`animate-move-in relative flex flex-col justify-center rounded-md w-96 text-sm p-3 mb-2 overflow-hidden pointer-events-auto ${height} ${background}`}>
-    {title && <p className="text-white">{title}</p>}
-    <p className="text-white text-opacity-80">{body}</p>
-    <a className="absolute cursor-pointer right-3 text-white" onClick={() => snackbars.remove(id!)}>OK</a>
+    {snackbar.title && <p className="text-white">{snackbar.title}</p>}
+    <p className="text-white text-opacity-80">{snackbar.body}</p>
+    <a className="absolute cursor-pointer right-3 text-white" onClick={() => snackbars.remove(snackbar)}>OK</a>
   </div>
 };
 
 export const SnackbarContainer = ({ children }: HTMLAttributes<Provider<SnackbarState>>): JSX.Element => {
-  const [snackbars, setSnackbars] = useState<SnackbarMessage[]>([]);
-  const snackbarElements = snackbars.map(({id, ...props}) => <Snackbar key={id} id={id} {...props}></Snackbar>);
+  const [snackbars, setSnackbars] = useState<UpdatableSnackbarMessage[]>([]);
+  const snackbarElements = snackbars.map(snackbar => <Snackbar key={snackbar.id} snackbar={snackbar}></Snackbar>);
   return <SnackbarContext.Provider value={{snackbars, setSnackbars}}>
     <div className="fixed flex justify-center inset-x-0 bottom-0 flex z-20 pointer-events-none">
       <div className="container flex flex-col items-center">
