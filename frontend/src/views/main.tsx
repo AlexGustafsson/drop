@@ -127,14 +127,14 @@ const MainView = (): JSX.Element => {
 
   function downloadFile({ props }: ItemParams<FileResponse>) {
     // TODO: https://reactjs.org/docs/hooks-custom.html
-    === break here
-    const [title, setTitle] = useState<string>(`Downloading ${props?.name}`);
-    const [body, setBody] = useState<string>("");
-
-    const snackbar = snackbars.show({ title, body, type: "default" });
+    const snackbar = snackbars.show({
+      title: `Downloading ${props?.name}`,
+      body: "",
+      type: "default"
+    });
     let i = 0;
     const interval = setInterval(() => {
-      setBody(i.toString());
+      snackbar.setBody?.(i.toString());
       i++;
     }, 100);
     snackbar.removed = () => {

@@ -10,7 +10,9 @@ export interface SnackbarMessage {
 
 interface UpdatableSnackbarMessage {
   title: string
+  setTitle?: React.Dispatch<React.SetStateAction<string>>
   body: string
+  setBody?: React.Dispatch<React.SetStateAction<string>>
   id: number
   type: string
   removed: (snackbar: UpdatableSnackbarMessage) => void
@@ -60,6 +62,14 @@ type SnackbarProps = {
 
 export const Snackbar = ({snackbar}: SnackbarProps): JSX.Element => {
   const snackbars = useSnackbars();
+
+  const [title, setTitle] = useState(snackbar.title);
+  const [body, setBody] = useState(snackbar.body);
+  snackbar.title = title;
+  snackbar.setTitle = setTitle;
+  snackbar.body = body;
+  snackbar.setBody = setBody;
+
   const height = snackbar.title ? "h-14" : "h-10";
   let background = "bg-primary";
   if (snackbar.type === "error")
