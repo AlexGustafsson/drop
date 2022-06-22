@@ -167,7 +167,7 @@ func (archive *SqliteArchive) Tokens() ([]state.ArchiveToken, error) {
 	return tokens, nil
 }
 
-func (archive *SqliteArchive) CreateToken(lifetime int) (state.ArchiveToken, string, error) {
+func (archive *SqliteArchive) CreateToken(lifetime time.Duration) (state.ArchiveToken, string, error) {
 	tokenString, claims, err := auth.CreateArchiveToken(archive.store.secret, archive.id, archive.name, lifetime, archive.maximumFileCount, archive.maximumFileSize, archive.maximumSize)
 	if err != nil {
 		return nil, "", nil
@@ -184,15 +184,15 @@ func (archive *SqliteArchive) CreateToken(lifetime int) (state.ArchiveToken, str
 	}
 	defer statement.Close()
 
-	_, err = statement.Exec(claims.Id, archive.Id(), claims.ExpiresAt, claims.IssuedAt)
+	_, err = statement.Exec(claims.ID, archive.Id(), claims.ExpiresAt.Unix(), claims.IssuedAt.Unix())
 	if err != nil {
 		return nil, "", err
 	}
 
 	token := &SqliteArchiveToken{
-		id:      claims.Id,
-		expires: claims.ExpiresAt,
-		created: claims.IssuedAt,
+		id:      claims.ID,
+		expires: claims.ExpiresAt.Unix(),
+		created: claims.IssuedAt.Unix(),
 	}
 
 	return token, tokenString, nil

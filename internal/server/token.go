@@ -1,6 +1,8 @@
 package server
 
 import (
+	"time"
+
 	"github.com/AlexGustafsson/drop/internal/server/wrappers"
 	"github.com/gofiber/fiber/v2"
 )
@@ -70,7 +72,7 @@ func (server *Server) handleTokenCreate(ctx *wrappers.Context) error {
 		return nil
 	}
 
-	token, tokenString, err := archive.CreateToken(request.Lifetime)
+	token, tokenString, err := archive.CreateToken(time.Duration(request.Lifetime) * time.Second)
 	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
 		return err

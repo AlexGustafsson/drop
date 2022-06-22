@@ -21,14 +21,14 @@ ifeq ($(shell uname),Darwin)
 	CC=clang
 endif
 
-.PHONY: help build format lint test clean
+.PHONY: help build frontend format lint test clean
 
 # Produce a short description of available make commands
 help:
 	pcregrep -Mo '^(#.*\n)+^[^# ]+:' Makefile | sed "s/^\([^# ]\+\):/> \1/g" | sed "s/^#\s\+\(.\+\)/\1/g" | GREP_COLORS='ms=1;34' grep -E --color=always '^>.*|$$' | GREP_COLORS='ms=1;37' grep -E --color=always '^[^>].*|$$'
 
 # Build for the native platform
-build: generate build/frontend build/drop
+build: generate frontend drop
 
 # Run generating jobs
 generate: clients/typescript/index.ts
@@ -53,19 +53,17 @@ test: $(server_source) Makefile
 	go test -v ./...
 
 # Build for the native platform
-build/drop: $(server_source) Makefile
-	go build $(BUILD_FLAGS) -o $@ cmd/drop.go
+drop: $(server_source) Makefile
+	go build $(BUILD_FLAGS) -o $@ cmd/*.go
 
-build/frontend: $(frontend_source)
-	mkdir -p build
-	cd frontend && yarn install
-	cd frontend && yarn build
-	rm -rf build/frontend
-	cp -r frontend/dist build/frontend
+frontend:
+	yarn install
+	yarn run build
 
 # Generate the TypeScript API client
 clients/typescript/index.ts: api.yml
-	npx npx swagger-typescript-api --path $< --output clients/typescript --name index.ts
+	npx swagger-typescript-api --path $< --output clients/typescript --name index.ts
+	yarn run format
 
 # Clean all dynamically created files
 clean:

@@ -33,7 +33,7 @@ func (ctx *Context) parseAdminToken(bearerToken string) error {
 		return err
 	}
 
-	_, tokenExists, err := ctx.stateStore.AdminToken(claims.Id)
+	_, tokenExists, err := ctx.stateStore.AdminToken(claims.ID)
 	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
 		return err
@@ -66,7 +66,7 @@ func (ctx *Context) parseArchiveToken(bearerToken string) error {
 		return err
 	}
 
-	_, tokenExists, err := archive.Token(claims.Id)
+	_, tokenExists, err := archive.Token(claims.ID)
 	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).SendString(InternalServerError)
 		return err

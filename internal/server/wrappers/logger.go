@@ -10,13 +10,13 @@ func extractFields(ctx *Context, fields log.Fields) {
 
 	if claims, isAdmin := ctx.AdminClaims(); isAdmin {
 		fields["admin"] = isAdmin
-		fields["token"] = claims.Id
+		fields["token"] = claims.ID
 	} else {
 		fields["admin"] = false
 	}
 
 	if claims, isArchive := ctx.ArchiveClaims(); isArchive {
-		fields["token"] = claims.Id
+		fields["token"] = claims.ID
 	}
 }
 

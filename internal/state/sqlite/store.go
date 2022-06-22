@@ -148,7 +148,7 @@ func (store *SqliteStore) Archives() ([]state.Archive, error) {
 	return archives, nil
 }
 
-func (store *SqliteStore) CreateAdminToken(lifetime int) (state.AdminToken, string, error) {
+func (store *SqliteStore) CreateAdminToken(lifetime time.Duration) (state.AdminToken, string, error) {
 	tokenString, claims, err := auth.CreateAdminToken(store.secret, lifetime)
 	if err != nil {
 		return nil, "", nil
@@ -165,15 +165,15 @@ func (store *SqliteStore) CreateAdminToken(lifetime int) (state.AdminToken, stri
 	}
 	defer statement.Close()
 
-	_, err = statement.Exec(claims.Id, claims.ExpiresAt, claims.IssuedAt)
+	_, err = statement.Exec(claims.ID, claims.ExpiresAt.Unix(), claims.IssuedAt.Unix())
 	if err != nil {
 		return nil, "", err
 	}
 
 	token := &SqliteAdminToken{
-		id:      claims.Id,
-		expires: claims.ExpiresAt,
-		created: claims.IssuedAt,
+		id:      claims.ID,
+		expires: claims.ExpiresAt.Unix(),
+		created: claims.IssuedAt.Unix(),
 	}
 
 	return token, tokenString, nil

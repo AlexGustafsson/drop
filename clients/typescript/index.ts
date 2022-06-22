@@ -11,236 +11,256 @@
 
 export interface ArchiveRequest {
   /** Name of the archive. */
-  name: string;
+  name: string
 
   /**
    * The maximum number of files allowed to be uploaded. Use 0 to allow any count.
    * @min 0
    */
-  maximumFileCount: number;
+  maximumFileCount: number
 
   /**
    * The maximum size of an uploaded file. Use 0 to allow any size.
    * @min 0
    */
-  maximumFileSize: number;
+  maximumFileSize: number
 
   /**
    * The total maximum size of the uploaded files. use 0 to allow any size.
    * @min 0
    */
-  maximumSize: number;
+  maximumSize: number
 }
 
 export interface ArchiveResponse {
-  id: string;
+  id: string
 
   /** The UTC timestamp at which the archive was created. */
-  created: number;
+  created: number
 
   /** Name of the archive. */
-  name: string;
+  name: string
 
   /** The maximum number of files allowed to be uploaded. Use 0 to allow any count. */
-  maximumFileCount: number;
+  maximumFileCount: number
 
   /** The maximum size of an uploaded file. Use 0 to allow any size. */
-  maximumFileSize: number;
+  maximumFileSize: number
 
   /** The total maximum size of the uploaded files. use 0 to allow any size. */
-  maximumSize: number;
+  maximumSize: number
 
   /** The files stored in the archive. */
-  files: FileResponse[];
+  files: FileResponse[]
 }
 
 export interface ArchivesResponse {
-  archives: ArchiveResponse[];
+  archives: ArchiveResponse[]
 }
 
 export interface TokenRequest {
   /** The number of seconds the token should be valid. */
-  lifetime: number;
+  lifetime: number
 }
 
 export interface TokenResponse {
-  id: string;
+  id: string
 
   /** The UTC timestamp at which the token was created. */
-  created: number;
+  created: number
 
   /** Token with upload access to the archive. */
-  token: string;
+  token: string
 }
 
 export interface TokensResponse {
-  tokens: { id?: string; created?: number }[];
+  tokens: { id?: string; created?: number }[]
 }
 
 export interface FileRequest {
   /** Name of the file. */
-  name: string;
+  name: string
 
   /** The UTC timestamp when the file was last modified. */
-  lastModified: number;
+  lastModified: number
 
   /** Size in bytes. */
-  size: number;
+  size: number
 
   /** Size in bytes of the encrypted file. */
-  encryptedSize: number;
+  encryptedSize: number
 
   /** The MIME type of the file. */
-  mime: string;
+  mime: string
 }
 
 export interface FileResponse {
   /** The id of the file. */
-  id: string;
+  id: string
 
   /** The id of the archive the file belongs to. */
-  archiveId: string;
+  archiveId: string
 
   /** The UTC timestamp at which the file was created. */
-  created: number;
+  created: number
 
   /** Name of the file. */
-  name: string;
+  name: string
 
   /** The UTC timestamp when the file was last modified. */
-  lastModified: number;
+  lastModified: number
 
   /** Size in bytes. */
-  size: number;
+  size: number
 
   /** Size in bytes of the encrypted file. */
-  encryptedSize: number;
+  encryptedSize: number
 
   /** The MIME type of the file. */
-  mime: string;
+  mime: string
 }
 
 export interface FilesResponse {
-  files: FileResponse[];
+  files: FileResponse[]
 }
 
 export interface ErrorResponse {
-  error: string;
+  error: string
 }
 
-export type QueryParamsType = Record<string | number, any>;
-export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
+export type QueryParamsType = Record<string | number, any>
+export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>
 
-export interface FullRequestParams extends Omit<RequestInit, "body"> {
+export interface FullRequestParams extends Omit<RequestInit, 'body'> {
   /** set parameter to `true` for call `securityWorker` for this request */
-  secure?: boolean;
+  secure?: boolean
   /** request path */
-  path: string;
+  path: string
   /** content type of request body */
-  type?: ContentType;
+  type?: ContentType
   /** query params */
-  query?: QueryParamsType;
+  query?: QueryParamsType
   /** format of response (i.e. response.json() -> format: "json") */
-  format?: ResponseFormat;
+  format?: ResponseFormat
   /** request body */
-  body?: unknown;
+  body?: unknown
   /** base url */
-  baseUrl?: string;
+  baseUrl?: string
   /** request cancellation token */
-  cancelToken?: CancelToken;
+  cancelToken?: CancelToken
 }
 
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
+export type RequestParams = Omit<
+  FullRequestParams,
+  'body' | 'method' | 'query' | 'path'
+>
 
 export interface ApiConfig<SecurityDataType = unknown> {
-  baseUrl?: string;
-  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
-  customFetch?: typeof fetch;
+  baseUrl?: string
+  baseApiParams?: Omit<RequestParams, 'baseUrl' | 'cancelToken' | 'signal'>
+  securityWorker?: (
+    securityData: SecurityDataType | null
+  ) => Promise<RequestParams | void> | RequestParams | void
+  customFetch?: typeof fetch
 }
 
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
-  data: D;
-  error: E;
+export interface HttpResponse<D extends unknown, E extends unknown = unknown>
+  extends Response {
+  data: D
+  error: E
 }
 
-type CancelToken = Symbol | string | number;
+type CancelToken = Symbol | string | number
 
 export enum ContentType {
-  Json = "application/json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
+  Json = 'application/json',
+  FormData = 'multipart/form-data',
+  UrlEncoded = 'application/x-www-form-urlencoded',
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "http://localhost:8080/api/v1";
-  private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
-  private abortControllers = new Map<CancelToken, AbortController>();
-  private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
+  public baseUrl: string = 'http://localhost:8080/api/v1'
+  private securityData: SecurityDataType | null = null
+  private securityWorker?: ApiConfig<SecurityDataType>['securityWorker']
+  private abortControllers = new Map<CancelToken, AbortController>()
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
+    fetch(...fetchParams)
 
   private baseApiParams: RequestParams = {
-    credentials: "same-origin",
+    credentials: 'same-origin',
     headers: {},
-    redirect: "follow",
-    referrerPolicy: "no-referrer",
-  };
+    redirect: 'follow',
+    referrerPolicy: 'no-referrer',
+  }
 
   constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
-    Object.assign(this, apiConfig);
+    Object.assign(this, apiConfig)
   }
 
   public setSecurityData = (data: SecurityDataType | null) => {
-    this.securityData = data;
-  };
+    this.securityData = data
+  }
 
   private encodeQueryParam(key: string, value: any) {
-    const encodedKey = encodeURIComponent(key);
-    return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
+    const encodedKey = encodeURIComponent(key)
+    return `${encodedKey}=${encodeURIComponent(
+      typeof value === 'number' ? value : `${value}`
+    )}`
   }
 
   private addQueryParam(query: QueryParamsType, key: string) {
-    return this.encodeQueryParam(key, query[key]);
+    return this.encodeQueryParam(key, query[key])
   }
 
   private addArrayQueryParam(query: QueryParamsType, key: string) {
-    const value = query[key];
-    return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
+    const value = query[key]
+    return value.map((v: any) => this.encodeQueryParam(key, v)).join('&')
   }
 
   protected toQueryString(rawQuery?: QueryParamsType): string {
-    const query = rawQuery || {};
-    const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
+    const query = rawQuery || {}
+    const keys = Object.keys(query).filter(
+      (key) => 'undefined' !== typeof query[key]
+    )
     return keys
-      .map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key)))
-      .join("&");
+      .map((key) =>
+        Array.isArray(query[key])
+          ? this.addArrayQueryParam(query, key)
+          : this.addQueryParam(query, key)
+      )
+      .join('&')
   }
 
   protected addQueryParams(rawQuery?: QueryParamsType): string {
-    const queryString = this.toQueryString(rawQuery);
-    return queryString ? `?${queryString}` : "";
+    const queryString = this.toQueryString(rawQuery)
+    return queryString ? `?${queryString}` : ''
   }
 
   private contentFormatters: Record<ContentType, (input: any) => any> = {
     [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input,
+      input !== null && (typeof input === 'object' || typeof input === 'string')
+        ? JSON.stringify(input)
+        : input,
     [ContentType.FormData]: (input: any) =>
       Object.keys(input || {}).reduce((formData, key) => {
-        const property = input[key];
+        const property = input[key]
         formData.append(
           key,
           property instanceof Blob
             ? property
-            : typeof property === "object" && property !== null
+            : typeof property === 'object' && property !== null
             ? JSON.stringify(property)
-            : `${property}`,
-        );
-        return formData;
+            : `${property}`
+        )
+        return formData
       }, new FormData()),
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
-  };
+  }
 
-  private mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
+  private mergeRequestParams(
+    params1: RequestParams,
+    params2?: RequestParams
+  ): RequestParams {
     return {
       ...this.baseApiParams,
       ...params1,
@@ -250,31 +270,33 @@ export class HttpClient<SecurityDataType = unknown> {
         ...(params1.headers || {}),
         ...((params2 && params2.headers) || {}),
       },
-    };
+    }
   }
 
-  private createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
+  private createAbortSignal = (
+    cancelToken: CancelToken
+  ): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
-      const abortController = this.abortControllers.get(cancelToken);
+      const abortController = this.abortControllers.get(cancelToken)
       if (abortController) {
-        return abortController.signal;
+        return abortController.signal
       }
-      return void 0;
+      return void 0
     }
 
-    const abortController = new AbortController();
-    this.abortControllers.set(cancelToken, abortController);
-    return abortController.signal;
-  };
+    const abortController = new AbortController()
+    this.abortControllers.set(cancelToken, abortController)
+    return abortController.signal
+  }
 
   public abortRequest = (cancelToken: CancelToken) => {
-    const abortController = this.abortControllers.get(cancelToken);
+    const abortController = this.abortControllers.get(cancelToken)
 
     if (abortController) {
-      abortController.abort();
-      this.abortControllers.delete(cancelToken);
+      abortController.abort()
+      this.abortControllers.delete(cancelToken)
     }
-  };
+  }
 
   public request = async <T = any, E = any>({
     body,
@@ -288,52 +310,62 @@ export class HttpClient<SecurityDataType = unknown> {
     ...params
   }: FullRequestParams): Promise<HttpResponse<T, E>> => {
     const secureParams =
-      ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
+      ((typeof secure === 'boolean' ? secure : this.baseApiParams.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
-      {};
-    const requestParams = this.mergeRequestParams(params, secureParams);
-    const queryString = query && this.toQueryString(query);
-    const payloadFormatter = this.contentFormatters[type || ContentType.Json];
-    const responseFormat = format || requestParams.format;
+      {}
+    const requestParams = this.mergeRequestParams(params, secureParams)
+    const queryString = query && this.toQueryString(query)
+    const payloadFormatter = this.contentFormatters[type || ContentType.Json]
+    const responseFormat = format || requestParams.format
 
-    return this.customFetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
-      ...requestParams,
-      headers: {
-        ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
-        ...(requestParams.headers || {}),
-      },
-      signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
-      body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
-    }).then(async (response) => {
-      const r = response as HttpResponse<T, E>;
-      r.data = null as unknown as T;
-      r.error = null as unknown as E;
+    return this.customFetch(
+      `${baseUrl || this.baseUrl || ''}${path}${
+        queryString ? `?${queryString}` : ''
+      }`,
+      {
+        ...requestParams,
+        headers: {
+          ...(type && type !== ContentType.FormData
+            ? { 'Content-Type': type }
+            : {}),
+          ...(requestParams.headers || {}),
+        },
+        signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
+        body:
+          typeof body === 'undefined' || body === null
+            ? null
+            : payloadFormatter(body),
+      }
+    ).then(async (response) => {
+      const r = response as HttpResponse<T, E>
+      r.data = null as unknown as T
+      r.error = null as unknown as E
 
       const data = !responseFormat
         ? r
         : await response[responseFormat]()
             .then((data) => {
               if (r.ok) {
-                r.data = data;
+                r.data = data
               } else {
-                r.error = data;
+                r.error = data
               }
-              return r;
+              return r
             })
             .catch((e) => {
-              r.error = e;
-              return r;
-            });
+              r.error = e
+              return r
+            })
 
       if (cancelToken) {
-        this.abortControllers.delete(cancelToken);
+        this.abortControllers.delete(cancelToken)
       }
 
-      if (!response.ok) throw data;
-      return data;
-    });
-  };
+      if (!response.ok) throw data
+      return data
+    })
+  }
 }
 
 /**
@@ -343,7 +375,9 @@ export class HttpClient<SecurityDataType = unknown> {
  *
  * A self-hosted, end-to-end encrypted personal file sharing service
  */
-export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+export class Api<
+  SecurityDataType extends unknown
+> extends HttpClient<SecurityDataType> {
   admin = {
     /**
      * No description
@@ -357,9 +391,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     tokensList: (params: RequestParams = {}) =>
       this.request<TokensResponse, any>({
         path: `/admin/tokens`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -375,9 +409,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     tokensDetail: (tokenId: string, params: RequestParams = {}) =>
       this.request<TokenResponse, any>({
         path: `/admin/tokens/${tokenId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -393,11 +427,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     tokensDelete: (tokenId: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/admin/tokens/${tokenId}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         ...params,
       }),
-  };
+  }
   archives = {
     /**
      * No description
@@ -411,9 +445,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     archivesList: (params: RequestParams = {}) =>
       this.request<ArchivesResponse, any>({
         path: `/archives`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -429,11 +463,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     archivesCreate: (data: ArchiveRequest, params: RequestParams = {}) =>
       this.request<ArchiveResponse, any>({
         path: `/archives`,
-        method: "POST",
+        method: 'POST',
         body: data,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -449,9 +483,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     archivesDetail: (archiveId: string, params: RequestParams = {}) =>
       this.request<ArchiveResponse, any>({
         path: `/archives/${archiveId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -467,7 +501,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     archivesDelete: (archiveId: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/archives/${archiveId}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         ...params,
       }),
@@ -484,9 +518,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     tokensDetail: (archiveId: string, params: RequestParams = {}) =>
       this.request<TokensResponse, any>({
         path: `/archives/${archiveId}/tokens`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -499,14 +533,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/archives/{archiveId}/tokens
      * @secure
      */
-    tokensCreate: (archiveId: string, data: TokenRequest, params: RequestParams = {}) =>
+    tokensCreate: (
+      archiveId: string,
+      data: TokenRequest,
+      params: RequestParams = {}
+    ) =>
       this.request<TokenResponse, any>({
         path: `/archives/${archiveId}/tokens`,
-        method: "POST",
+        method: 'POST',
         body: data,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -521,12 +559,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @duplicate
      * @secure
      */
-    tokensDetail2: (archiveId: string, tokenId: string, params: RequestParams = {}) =>
+    tokensDetail2: (
+      archiveId: string,
+      tokenId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<TokenResponse, any>({
         path: `/archives/${archiveId}/tokens/${tokenId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -539,10 +581,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request DELETE:/archives/{archiveId}/tokens/{tokenId}
      * @secure
      */
-    tokensDelete: (archiveId: string, tokenId: string, params: RequestParams = {}) =>
+    tokensDelete: (
+      archiveId: string,
+      tokenId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/archives/${archiveId}/tokens/${tokenId}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         ...params,
       }),
@@ -559,9 +605,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     filesDetail: (archiveId: string, params: RequestParams = {}) =>
       this.request<FilesResponse, any>({
         path: `/archives/${archiveId}/files`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -574,14 +620,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/archives/{archiveId}/files
      * @secure
      */
-    filesCreate: (archiveId: string, data: FileRequest, params: RequestParams = {}) =>
+    filesCreate: (
+      archiveId: string,
+      data: FileRequest,
+      params: RequestParams = {}
+    ) =>
       this.request<FileResponse, void>({
         path: `/archives/${archiveId}/files`,
-        method: "POST",
+        method: 'POST',
         body: data,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -596,12 +646,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @duplicate
      * @secure
      */
-    filesDetail2: (archiveId: string, fileId: string, params: RequestParams = {}) =>
+    filesDetail2: (
+      archiveId: string,
+      fileId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<FileResponse, any>({
         path: `/archives/${archiveId}/files/${fileId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -614,10 +668,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request DELETE:/archives/{archiveId}/files/{fileId}
      * @secure
      */
-    filesDelete: (archiveId: string, fileId: string, params: RequestParams = {}) =>
+    filesDelete: (
+      archiveId: string,
+      fileId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/archives/${archiveId}/files/${fileId}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         ...params,
       }),
@@ -631,10 +689,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/archives/{archiveId}/files/{fileId}/content
      * @secure
      */
-    filesContentDetail: (archiveId: string, fileId: string, params: RequestParams = {}) =>
+    filesContentDetail: (
+      archiveId: string,
+      fileId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<File, any>({
         path: `/archives/${archiveId}/files/${fileId}/content`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         ...params,
       }),
@@ -648,15 +710,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/archives/{archiveId}/files/{fileId}/content
      * @secure
      */
-    filesContentCreate: (archiveId: string, fileId: string, data: File, params: RequestParams = {}) =>
+    filesContentCreate: (
+      archiveId: string,
+      fileId: string,
+      data: File,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/archives/${archiveId}/files/${fileId}/content`,
-        method: "POST",
+        method: 'POST',
         body: data,
         secure: true,
         ...params,
       }),
-  };
+  }
   files = {
     /**
      * No description
@@ -670,10 +737,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     filesList: (params: RequestParams = {}) =>
       this.request<FilesResponse, any>({
         path: `/files`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
-  };
+  }
 }

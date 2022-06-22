@@ -1,6 +1,6 @@
 package auth
 
-import "github.com/dgrijalva/jwt-go"
+import jwt "github.com/golang-jwt/jwt/v4"
 
 type TokenType int
 

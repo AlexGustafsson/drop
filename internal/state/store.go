@@ -1,5 +1,7 @@
 package state
 
+import "time"
+
 // File is a
 type File interface {
 	Id() string
@@ -40,7 +42,7 @@ type Archive interface {
 	DeleteToken(id string) (bool, error)
 	Tokens() ([]ArchiveToken, error)
 	// CreateToken creates a token for an archive
-	CreateToken(lifetime int) (ArchiveToken, string, error)
+	CreateToken(lifetime time.Duration) (ArchiveToken, string, error)
 	// CreateFile creates a file in an archive
 	CreateFile(name string, lastModified int64, size int, encryptedSize int, mime string) (File, error)
 	DeleteFile(id string) (bool, error)
@@ -57,7 +59,7 @@ type Store interface {
 	Archives() ([]Archive, error)
 	DeleteArchive(id string) (bool, error)
 	// CreateAdminToken creates an admin token
-	CreateAdminToken(lifetime int) (AdminToken, string, error)
+	CreateAdminToken(lifetime time.Duration) (AdminToken, string, error)
 	AdminToken(id string) (AdminToken, bool, error)
 	AdminTokens() ([]AdminToken, error)
 	DeleteAdminToken(id string) (bool, error)

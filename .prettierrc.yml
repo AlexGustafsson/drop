@@ -1,0 +1,11 @@
+trailingComma: 'es5'
+tabWidth: 2
+semi: false
+singleQuote: true
+endOfLine: 'lf'
+importOrderSeparation: true
+importOrderSortSpecifiers: true
+importOrder:
+  - '^[^.@]' # "normal" dependencies
+  - '^@' # organization dependencies
+  - '^(\.*)/?' # local dependencies
